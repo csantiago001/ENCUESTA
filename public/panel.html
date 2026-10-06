@@ -9,6 +9,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Registros de Caracterización - MEBUC</title>
 <script src="/dialogo.js"></script>
+<script src="/qrcode.js" defer></script>
+<script src="/compartir.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -232,6 +234,7 @@ tr.fila:hover td{ background:var(--verde-100); }
             <p>Policía Metropolitana de Bucaramanga · MEBUC</p>
         </div>
         <div class="acciones-top">
+            <button type="button" class="btn-claro" id="btnCompartir" title="Código QR para compartir la encuesta">📱 <span>QR encuesta</span></button>
             <a class="btn btn-claro salir" href="/" title="Ir al formulario">📝 <span>Formulario</span></a>
             <button type="button" class="btn-claro salir" id="btnSalir" hidden>🔒 <span>Salir</span></button>
         </div>
@@ -437,6 +440,7 @@ function mostrarPanel(){
     cargar();
 }
 
+$("btnCompartir").addEventListener("click", () => window.abrirCompartir && window.abrirCompartir());
 $("btnSalir").addEventListener("click", () => {
     try{ sessionStorage.removeItem(CLAVE_SESION); }catch(_){}
     location.reload();
