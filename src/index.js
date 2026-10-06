@@ -271,7 +271,7 @@ async function crearRegistro(request, env, url) {
     if (!actores.length || actores.some(a => !a.alias)) errores.push("actor reconocido (nombre o alias)");
     if (!registro.venezolanos) errores.push("vinculación de venezolanos");
     if (!registro.marquillas) errores.push("marquillas");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(registro.correo_registra)) errores.push("correo electrónico");
+    if (!/^[a-z0-9._%+-]+@correo\.policia\.gov\.co$/.test(registro.correo_registra)) errores.push("correo institucional (@correo.policia.gov.co)");
     if (!Array.isArray(d.sustancias_lista) || registro.sustanciaIncompleta) errores.push("sustancias y valor de la dosis");
     if (registro.nombre_registra.split(/\s+/).filter(Boolean).length < 2) errores.push("nombre completo");
     if (!/^[A-Za-z0-9-]{8,64}$/.test(registro.id)) errores.push("identificador");
