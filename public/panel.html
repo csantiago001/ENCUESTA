@@ -115,6 +115,9 @@ tr.fila:hover td{ background:#f7fafd; }
 .campo.ancho{ grid-column:1 / -1; }
 .campo .k{ font-size:12px; font-weight:700; color:var(--gris); text-transform:uppercase; letter-spacing:.03em; }
 .campo .v{ white-space:pre-wrap; word-break:break-word; margin-top:2px; }
+.t-func{ width:100%; border-collapse:collapse; margin-top:4px; font-size:13px; }
+.t-func th{ font-size:11px; padding:6px 8px; border-bottom:1px solid var(--borde); }
+.t-func td{ padding:7px 8px; border-bottom:1px solid #eef1f4; }
 .grupo-fotos h3{ font-size:15px; color:var(--azul); margin:18px 0 10px; border-bottom:2px solid var(--azul3); padding-bottom:6px; }
 .galeria{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
 .foto{ border:1px solid var(--borde); border-radius:10px; overflow:hidden; }
@@ -248,7 +251,7 @@ tr.fila:hover td{ background:#f7fafd; }
         <div class="filtros">
             <div class="buscar">
                 <label for="fTexto">Buscar</label>
-                <input id="fTexto" type="search" placeholder="Barrio, dirección, actor, sustancia, ZAP...">
+                <input id="fTexto" type="search" placeholder="Barrio, dirección, ZAP, funcionario, actor...">
             </div>
             <div>
                 <label for="fMunicipio">Municipio</label>
@@ -298,9 +301,9 @@ tr.fila:hover td{ background:#f7fafd; }
                 <div id="gVenezolanos"></div>
             </section>
             <section class="card">
-                <h2 class="g-titulo">Fotografías por tipo</h2>
-                <p class="g-sub">Total de fotos tomadas.</p>
-                <div id="gFotos"></div>
+                <h2 class="g-titulo">Registros por ZAP</h2>
+                <p class="g-sub">Las 10 ZAP con más puntos caracterizados.</p>
+                <div id="gZap"></div>
             </section>
             <section class="card ancho">
                 <h2 class="g-titulo">Mapa de puntos</h2>
@@ -323,6 +326,7 @@ tr.fila:hover td{ background:#f7fafd; }
                         <th>Municipio</th>
                         <th>Barrio</th>
                         <th>Dirección</th>
+                        <th>ZAP</th>
                         <th>Tipo</th>
                         <th class="col-opc">Estructura / actor</th>
                         <th>Fotos</th>
@@ -417,7 +421,7 @@ $("btnSalir").addEventListener("click", () => {
 ============================ */
 async function cargar(){
     $("btnActualizar").disabled = true;
-    $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">Cargando registros...</td></tr>`;
+    $("tbody").innerHTML = `<tr><td colspan="8" class="vacio">Cargando registros...</td></tr>`;
     try{
         datos = await api("/registros");
         $("notaEnlaces").textContent =
@@ -426,7 +430,7 @@ async function cargar(){
         filtrar();
     }catch(err){
         if (err.status === 401){ $("btnSalir").click(); return; }
-        $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">No fue posible cargar los registros. ${esc(err.message)}</td></tr>`;
+        $("tbody").innerHTML = `<tr><td colspan="8" class="vacio">No fue posible cargar los registros. ${esc(err.message)}</td></tr>`;
     }finally{
         $("btnActualizar").disabled = false;
     }
@@ -444,7 +448,7 @@ function filtrar(){
         if (desde && dia < desde) return false;
         if (hasta && dia > hasta) return false;
         if (texto){
-            const todo = normalizar([r.barrio, r.direccion, r.actor, r.sustancia, r.marquillas, r.funcionarios, r.municipio].join(" "));
+            const todo = normalizar([r.barrio, r.direccion, r.actor, r.sustancia, r.marquillas, r.funcionarios, r.zap, r.municipio].join(" "));
             if (!todo.includes(texto)) return false;
         }
         return true;
@@ -464,7 +468,7 @@ function pintar(){
     pintarGraficos();
 
     if (!filtrados.length){
-        $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">${datos.registros.length ? "Ningún registro coincide con los filtros." : "Aún no hay registros."}</td></tr>`;
+        $("tbody").innerHTML = `<tr><td colspan="8" class="vacio">${datos.registros.length ? "Ningún registro coincide con los filtros." : "Aún no hay registros."}</td></tr>`;
         return;
     }
     $("tbody").innerHTML = filtrados.map((r, i) => `
@@ -473,6 +477,7 @@ function pintar(){
             <td>${esc(r.municipio)}</td>
             <td>${esc(r.barrio)}</td>
             <td>${esc(r.direccion)}</td>
+            <td style="white-space:nowrap">${esc(r.zap || "")}</td>
             <td><span class="chip ${r.tipo_expendio === "Fijo" ? "fijo" : ""}">${esc(r.tipo_expendio)}</span></td>
             <td class="col-opc">${esc((r.actor || "").slice(0, 60))}${(r.actor || "").length > 60 ? "…" : ""}</td>
             <td class="num-fotos">📷 ${totalFotos(r)}</td>
@@ -589,9 +594,14 @@ function pintarGraficos(){
     barrasHorizontales("gMunicipios", contar(filtrados, "municipio"));
     barrasHorizontales("gBarrios", contar(filtrados, r => (r.barrio || "").trim()).slice(0, 10));
     barrasHorizontales("gVenezolanos", contar(filtrados, "venezolanos"));
-    barrasHorizontales("gFotos",
-        TIPOS.map(t => [t.nombre, filtrados.reduce((n, r) => n + (r.fotos?.[t.id]?.length || 0), 0)])
-             .filter(p => p[1] > 0), "fotos");
+    const porZap = new Map();
+    filtrados.forEach(r => {
+        const zaps = listaFuncionarios(r).length
+            ? [...new Set(listaFuncionarios(r).map(f => f.zap))]
+            : (r.zap ? r.zap.split(",").map(z => z.trim()) : ["Sin dato"]);
+        zaps.forEach(z => porZap.set("ZAP " + z, (porZap.get("ZAP " + z) || 0) + 1));
+    });
+    barrasHorizontales("gZap", [...porZap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10));
     pintarMapa();
 }
 
@@ -647,6 +657,18 @@ function pintarMapa(){
 /* ============================
    DETALLE
 ============================ */
+function listaFuncionarios(r){
+    if (Array.isArray(r.funcionarios_lista) && r.funcionarios_lista.length) return r.funcionarios_lista;
+    return [];
+}
+function tablaFuncionarios(r){
+    const lista = listaFuncionarios(r);
+    if (!lista.length) return `<div class="v">${esc(r.funcionarios) || "—"}</div>`;   // registros antiguos
+    return `<table class="t-func"><thead><tr><th>ZAP</th><th>Grado</th><th>Nombre</th></tr></thead><tbody>` +
+        lista.map(f => `<tr><td>${esc(f.zap)}</td><td>${esc(f.grado)} (${esc(f.sigla)})</td><td>${esc(f.nombre)}</td></tr>`).join("") +
+        `</tbody></table>`;
+}
+
 function abrirDetalle(r){
     const campo = (k, v, ancho) => `<div class="campo${ancho ? " ancho" : ""}"><div class="k">${esc(k)}</div><div class="v">${esc(v) || "—"}</div></div>`;
     const mapa = `https://www.google.com/maps?q=${r.latitud},${r.longitud}`;
@@ -683,7 +705,7 @@ function abrirDetalle(r){
             ${campo("Estructura asociada y actor reconocido", r.actor, true)}
             ${campo("Tipo de sustancia y valor de la dosis", r.sustancia, true)}
             ${campo("Marquillas", r.marquillas, true)}
-            ${campo("ZAP y funcionarios", r.funcionarios, true)}
+            <div class="campo ancho"><div class="k">Funcionarios</div>${tablaFuncionarios(r)}</div>
         </div>
         ${fotosHtml}
         <div class="acciones-detalle">
@@ -741,7 +763,8 @@ function construirLibro(XLSX, registros, enlacesExpiran){
         ["Tipo de sustancia y valor de la dosis", "sustancia", 36],
         ["Vinculación de venezolanos", "venezolanos", 12],
         ["Marquillas", "marquillas", 32],
-        ["ZAP y funcionarios", "funcionarios", 32]
+        ["Código(s) ZAP", "zap", 12],
+        ["Funcionarios (ZAP · grado · nombre)", "funcionarios", 44]
     ];
 
     // Una columna por foto (Excel solo permite un enlace por celda)
@@ -793,6 +816,15 @@ function construirLibro(XLSX, registros, enlacesExpiran){
     wsFotos["!cols"] = [{ wch: 38 }, { wch: 17 }, { wch: 14 }, { wch: 22 }, { wch: 32 }, { wch: 18 }, { wch: 5 }, { wch: 11 }, { wch: 16 }];
     wsFotos["!autofilter"] = { ref: wsFotos["!ref"] };
 
+    // Hoja: una fila por funcionario
+    const filasFunc = [["ID registro", "Fecha registro", "Municipio", "Barrio", "Dirección", "Código ZAP", "Grado", "Sigla", "Nombres y apellidos"]];
+    registros.forEach(r => (r.funcionarios_lista || []).forEach(f => {
+        filasFunc.push([r.id, fechaCO(r.fecha_registro), r.municipio, r.barrio, r.direccion, f.zap, f.grado, f.sigla, f.nombre]);
+    }));
+    const wsFunc = XLSX.utils.aoa_to_sheet(filasFunc);
+    wsFunc["!cols"] = [{ wch: 38 }, { wch: 17 }, { wch: 14 }, { wch: 22 }, { wch: 32 }, { wch: 11 }, { wch: 22 }, { wch: 7 }, { wch: 32 }];
+    wsFunc["!autofilter"] = { ref: wsFunc["!ref"] };
+
     // Hoja 3: información del reporte
     const wsInfo = XLSX.utils.aoa_to_sheet([
         ["Caracterización de Zonas de Expendios - MEBUC"],
@@ -810,6 +842,7 @@ function construirLibro(XLSX, registros, enlacesExpiran){
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Caracterizaciones");
     XLSX.utils.book_append_sheet(wb, wsFotos, "Fotografías");
+    XLSX.utils.book_append_sheet(wb, wsFunc, "Funcionarios");
     XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
     return wb;
 }

@@ -13,6 +13,16 @@
 const TIPOS = ["actor", "marquilla", "punto"];
 const MUNICIPIOS = ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Lebrija", "Los Santos"];
 const TIPOS_EXPENDIO = ["Móvil", "Fijo"];
+const GRADOS = {
+    GR: "General", MG: "Mayor General", BG: "Brigadier General", CR: "Coronel", TC: "Teniente Coronel",
+    MY: "Mayor", CT: "Capitán", TE: "Teniente", ST: "Subteniente",
+    CM: "Comisario", SC: "Subcomisario", IJ: "Intendente Jefe", IT: "Intendente", SI: "Subintendente", PT: "Patrullero",
+    PP: "Patrullero de Policía",
+    SM: "Sargento Mayor", SP: "Sargento Primero", SV: "Sargento Viceprimero", SS: "Sargento Segundo",
+    CP: "Cabo Primero", CS: "Cabo Segundo",
+    AG: "Agente", AUX: "Auxiliar de Policía", NU: "Personal no uniformado"
+};
+const MAX_FUNCIONARIOS = 10;
 const MAX_FOTOS_TIPO = 6;
 const MAX_BYTES_FOTO = 8 * 1024 * 1024;
 const EXTENSIONES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -32,8 +42,26 @@ export default {
     }
 };
 
+/* Agrega columnas nuevas a bases de datos creadas con una versión anterior (solo una vez) */
+let esquemaListo = false;
+async function asegurarEsquema(env) {
+    if (esquemaListo) return;
+    for (const sql of [
+        "ALTER TABLE registros ADD COLUMN zap TEXT",
+        "ALTER TABLE registros ADD COLUMN funcionarios_json TEXT"
+    ]) {
+        try {
+            await env.DB.prepare(sql).run();
+        } catch (err) {
+            if (!/duplicate column/i.test(String(err && err.message))) throw err;
+        }
+    }
+    esquemaListo = true;
+}
+
 async function enrutar(request, env, url) {
     const { pathname } = url;
+    if (pathname !== "/api/fotos" && !pathname.startsWith("/api/fotos/")) await asegurarEsquema(env);
     const metodo = request.method;
 
     if (pathname === "/api/caracterizaciones" && metodo === "POST") return crearRegistro(request, env, url);
@@ -149,8 +177,24 @@ async function crearRegistro(request, env, url) {
         sustancia: texto(d.sustancia),
         venezolanos: ["SI", "NO"].includes(d.venezolanos) ? d.venezolanos : "",
         marquillas: texto(d.marquillas),
-        funcionarios: texto(d.funcionarios)
+        funcionarios: "",
+        zap: "",
+        funcionarios_json: "[]"
     };
+
+    // Funcionarios: [{ zap, sigla, nombre }]
+    const lista = Array.isArray(d.funcionarios_lista) ? d.funcionarios_lista.slice(0, MAX_FUNCIONARIOS) : [];
+    const funcionarios = lista.map(f => ({
+        zap: texto(f && f.zap, 20).toUpperCase(),
+        sigla: texto(f && f.sigla, 5).toUpperCase(),
+        nombre: texto(f && f.nombre, 120)
+    })).map(f => ({ ...f, grado: GRADOS[f.sigla] || "" }));
+    const funcionariosOk = funcionarios.length > 0 && funcionarios.every(f => f.zap && f.grado && f.nombre);
+    if (funcionariosOk) {
+        registro.funcionarios = funcionarios.map(f => `ZAP ${f.zap} · ${f.sigla} ${f.nombre}`).join("\n");
+        registro.zap = [...new Set(funcionarios.map(f => f.zap))].join(", ");
+        registro.funcionarios_json = JSON.stringify(funcionarios);
+    }
 
     const errores = [];
     if (!/^[A-Za-z0-9-]{8,64}$/.test(registro.id)) errores.push("identificador");
@@ -160,7 +204,7 @@ async function crearRegistro(request, env, url) {
     if (!Number.isFinite(registro.latitud) || Math.abs(registro.latitud) > 90 ||
         !Number.isFinite(registro.longitud) || Math.abs(registro.longitud) > 180) errores.push("coordenadas");
     if (!TIPOS_EXPENDIO.includes(registro.tipo_expendio)) errores.push("tipo de expendio");
-    if (!registro.funcionarios) errores.push("ZAP y funcionarios");
+    if (!funcionariosOk) errores.push("funcionarios (código ZAP, grado y nombre)");
     if (errores.length) return json({ error: "Campos inválidos: " + errores.join(", ") }, 400);
 
     // Si el registro ya existe (reintento tras corte de red), no se duplica
@@ -198,13 +242,13 @@ async function crearRegistro(request, env, url) {
             env.DB.prepare(`INSERT INTO registros
                 (id, fecha_registro, recibido_en, municipio, barrio, direccion, direccion_gps,
                  latitud, longitud, precision_m, coordenadas, tipo_expendio, actor, sustancia,
-                 venezolanos, marquillas, funcionarios)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
+                 venezolanos, marquillas, funcionarios, zap, funcionarios_json)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
                 registro.id, registro.fecha_registro, registro.recibido_en, registro.municipio,
                 registro.barrio, registro.direccion, registro.direccion_gps,
                 registro.latitud, registro.longitud, registro.precision_m, registro.coordenadas,
                 registro.tipo_expendio, registro.actor, registro.sustancia, registro.venezolanos,
-                registro.marquillas, registro.funcionarios
+                registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json
             ),
             ...subidas.map(s => env.DB.prepare(
                 "INSERT INTO fotos (registro_id, tipo, orden, r2_key, tamano, content_type) VALUES (?,?,?,?,?,?)"
@@ -248,7 +292,10 @@ async function listarRegistros(env, url) {
         const lista = porRegistro.get(r.id) || [];
         const agrupadas = {};
         for (const t of TIPOS) agrupadas[t] = lista.filter(f => f.tipo === t);
-        return { ...r, fotos: agrupadas };
+        let funcionariosLista = [];
+        try { funcionariosLista = JSON.parse(r.funcionarios_json || "[]"); } catch { /* registro antiguo */ }
+        const { funcionarios_json, ...resto } = r;
+        return { ...resto, funcionarios_lista: funcionariosLista, fotos: agrupadas };
     });
 
     return json({

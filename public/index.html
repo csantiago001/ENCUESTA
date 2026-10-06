@@ -122,6 +122,28 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .btn-secondary:hover{ background:#e2e8ef; }
 .btn-chico{ min-height:38px; padding:8px 14px; font-size:13px; }
 
+
+/* ---------- Funcionarios ---------- */
+.lista-func{ display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+.func{
+    border:1px solid var(--borde); border-radius:10px; padding:12px; background:#fafcfe;
+    display:grid; grid-template-columns:110px minmax(150px,1fr) 2fr 44px; gap:10px; align-items:end;
+}
+.func .num{ grid-column:1 / -1; font-size:12px; font-weight:700; color:var(--azul); text-transform:uppercase; letter-spacing:.03em; margin-bottom:-4px; }
+.func label{ font-size:12px; margin-bottom:4px; }
+.func .quitar{
+    min-height:46px; padding:0; width:44px; background:#fff; color:var(--rojo);
+    border:1px solid var(--borde); font-size:18px;
+}
+.func .quitar:hover{ background:#fdecea; }
+.func .quitar[hidden]{ display:none !important; }
+.btn-agregar{ width:100%; border:1px dashed #b9c5d1; background:#fff; color:var(--azul); }
+@media (max-width:700px){
+    .func{ grid-template-columns:84px 1fr 44px; }
+    .func .c-nombre{ grid-column:1 / -1; }
+    .func .quitar{ grid-row:2; grid-column:3; }
+}
+
 /* ---------- Fotos ---------- */
 .photo-area{
     border:2px dashed #b9c5d1; border-radius:var(--radio); padding:16px;
@@ -356,11 +378,12 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
                   placeholder="Ej. Cartulina XXX, bolsa hermética, stickers XXX..."></textarea>
     </div>
 
-    <div class="field">
-        <label for="funcionarios">ZAP y nombre de los funcionarios <span class="required">*</span></label>
-        <textarea id="funcionarios" name="funcionarios" maxlength="1000" required
-                  placeholder="Ingrese ZAP y funcionarios relacionados"></textarea>
-        <div class="error-msg">Indique la ZAP y los funcionarios.</div>
+    <div class="field" id="campoFuncionarios">
+        <span class="label">Funcionarios que realizan la caracterización <span class="required">*</span></span>
+        <div class="hint" style="margin:-2px 0 10px">Escriba el código ZAP, el grado y el nombre de cada funcionario.</div>
+        <div id="listaFuncionarios" class="lista-func"></div>
+        <button type="button" class="btn-secondary btn-agregar" id="btnAgregarFunc">＋ Agregar funcionario</button>
+        <div class="error-msg" id="errorFunc">Complete el código ZAP, el grado y el nombre de cada funcionario.</div>
     </div>
 </section>
 
@@ -933,6 +956,114 @@ async function buscarDireccion(lat, lon){
     guardarBorrador();
 }
 
+
+/* ============================
+   FUNCIONARIOS (ZAP, grado, nombre)
+============================ */
+const GRADOS = [
+    ["Oficiales", [["GR","General"],["MG","Mayor General"],["BG","Brigadier General"],["CR","Coronel"],
+                   ["TC","Teniente Coronel"],["MY","Mayor"],["CT","Capitán"],["TE","Teniente"],["ST","Subteniente"]]],
+    ["Nivel ejecutivo", [["CM","Comisario"],["SC","Subcomisario"],["IJ","Intendente Jefe"],["IT","Intendente"],
+                         ["SI","Subintendente"],["PT","Patrullero"]]],
+    ["Patrulleros de Policía", [["PP","Patrullero de Policía"]]],
+    ["Suboficiales", [["SM","Sargento Mayor"],["SP","Sargento Primero"],["SV","Sargento Viceprimero"],
+                      ["SS","Sargento Segundo"],["CP","Cabo Primero"],["CS","Cabo Segundo"]]],
+    ["Otros", [["AG","Agente"],["AUX","Auxiliar de Policía"],["NU","Personal no uniformado"]]]
+];
+const MAX_FUNCIONARIOS = 10;
+let contadorFunc = 0;
+
+function opcionesGrado(){
+    return '<option value="">Seleccione...</option>' + GRADOS.map(([grupo, lista]) =>
+        `<optgroup label="${grupo}">` + lista.map(([sigla, nombre]) =>
+            `<option value="${sigla}">${nombre} (${sigla})</option>`).join("") + "</optgroup>").join("");
+}
+
+function agregarFuncionario(datos = {}, enfocar = false){
+    const lista = $("listaFuncionarios");
+    if (lista.children.length >= MAX_FUNCIONARIOS) return;
+    const n = ++contadorFunc;
+    // La ZAP se copia del funcionario anterior (normalmente es la misma patrulla)
+    const filas = lista.querySelectorAll(".func");
+    const zapPrevia = filas.length ? filas[filas.length - 1].querySelector(".f-zap").value : "";
+
+    const fila = document.createElement("div");
+    fila.className = "func";
+    fila.innerHTML = `
+        <div class="num"></div>
+        <div class="c-zap">
+            <label for="fzap${n}">Código ZAP</label>
+            <input id="fzap${n}" class="f-zap" type="text" inputmode="text" autocomplete="off" maxlength="20" placeholder="Ej. 12">
+        </div>
+        <div class="c-grado">
+            <label for="fgrado${n}">Grado</label>
+            <select id="fgrado${n}" class="f-grado">${opcionesGrado()}</select>
+        </div>
+        <div class="c-nombre">
+            <label for="fnombre${n}">Nombres y apellidos</label>
+            <input id="fnombre${n}" class="f-nombre" type="text" autocomplete="off" maxlength="120" placeholder="Ej. Juan Carlos Pérez Rojas">
+        </div>
+        <button type="button" class="quitar" aria-label="Quitar funcionario" title="Quitar funcionario">✕</button>`;
+
+    fila.querySelector(".f-zap").value = datos.zap ?? zapPrevia;
+    fila.querySelector(".f-grado").value = datos.sigla || "";
+    fila.querySelector(".f-nombre").value = datos.nombre || "";
+    fila.querySelector(".f-zap").addEventListener("input", e => { e.target.value = e.target.value.toUpperCase(); });
+    fila.querySelector(".quitar").addEventListener("click", () => { fila.remove(); renumerarFuncionarios(); guardarBorrador(); });
+
+    lista.appendChild(fila);
+    renumerarFuncionarios();
+    if (enfocar) fila.querySelector(fila.querySelector(".f-zap").value ? ".f-grado" : ".f-zap").focus();
+}
+
+function renumerarFuncionarios(){
+    const filas = $("listaFuncionarios").querySelectorAll(".func");
+    filas.forEach((f, i) => {
+        f.querySelector(".num").textContent = `Funcionario ${i + 1}`;
+        f.querySelector(".quitar").hidden = filas.length === 1;
+    });
+    $("btnAgregarFunc").hidden = filas.length >= MAX_FUNCIONARIOS;
+}
+
+function siglaANombre(sigla){
+    for (const [, lista] of GRADOS) for (const [s, n] of lista) if (s === sigla) return n;
+    return "";
+}
+
+function leerFuncionarios(){
+    return [...$("listaFuncionarios").querySelectorAll(".func")].map(f => {
+        const sigla = f.querySelector(".f-grado").value;
+        return {
+            zap: f.querySelector(".f-zap").value.trim().toUpperCase(),
+            sigla,
+            grado: siglaANombre(sigla),
+            nombre: f.querySelector(".f-nombre").value.trim()
+        };
+    });
+}
+
+/* Devuelve el primer campo vacío (o null si todo está completo) y marca los errores */
+function validarFuncionarios(){
+    let primero = null;
+    $("listaFuncionarios").querySelectorAll(".func").forEach(f => {
+        [".f-zap", ".f-grado", ".f-nombre"].forEach(sel => {
+            const el = f.querySelector(sel);
+            const vacio = !el.value.trim();
+            el.classList.toggle("invalido", vacio);
+            if (vacio && !primero) primero = el;
+        });
+    });
+    $("campoFuncionarios").classList.toggle("con-error", !!primero);
+    return primero;
+}
+
+function reiniciarFuncionarios(lista = []){
+    $("listaFuncionarios").replaceChildren();
+    contadorFunc = 0;
+    if (lista.length) lista.forEach(d => agregarFuncionario(d));
+    else agregarFuncionario({ zap: "" });
+}
+
 /* ============================
    VALIDACIÓN
 ============================ */
@@ -955,6 +1086,9 @@ function validar(){
     const gpsOk = !!coordenadasValidas();
     $("campoGPS").classList.toggle("con-error", !gpsOk);
     if (!gpsOk && !primero) primero = $("btnGPS");
+
+    const funcVacio = validarFuncionarios();
+    if (funcVacio && !primero) primero = funcVacio;
 
     if (primero){
         primero.closest(".field, .gps-box")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -991,7 +1125,7 @@ function recolectarDatos(){
         sustancia:      $("sustancia").value.trim(),
         venezolanos:    radio("venezolanos"),
         marquillas:     $("marquillas").value.trim(),
-        funcionarios:   $("funcionarios").value.trim(),
+        funcionarios_lista: leerFuncionarios(),
         sitio_web:      $("sitioWeb").value
     };
 }
@@ -1069,8 +1203,8 @@ form.addEventListener("submit", async e => {
 
     try{
         await enviar(construirFormData(datos));
-        mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}).`, "ok");
-        reiniciarFormulario();
+        mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}). Los funcionarios se conservaron para el siguiente registro.`, "ok");
+        reiniciarFormulario(true);
     }catch(err){
         console.error(err);
         if (err.status === 400 || err.status === 413){
@@ -1087,8 +1221,10 @@ form.addEventListener("submit", async e => {
     }
 });
 
-function reiniciarFormulario(){
+function reiniciarFormulario(conservarFuncionarios = false){
+    const patrulla = conservarFuncionarios ? leerFuncionarios() : [];
     form.reset();
+    reiniciarFuncionarios(patrulla);
     limpiarFotos();
     precisionGPS = null;
     direccionGPS = "";
@@ -1105,14 +1241,15 @@ function reiniciarFormulario(){
 /* ============================
    BORRADOR AUTOMÁTICO (solo texto)
 ============================ */
-const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","sustancia","marquillas","funcionarios"];
+const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","sustancia","marquillas"];
 let temporizador = null;
 
 function guardarBorrador(){
     clearTimeout(temporizador);
     temporizador = setTimeout(() => {
         try{
-            const b = { precision: precisionGPS, direccionGPS, tipoExpendio: radio("tipoExpendio"), venezolanos: radio("venezolanos") };
+            const b = { precision: precisionGPS, direccionGPS, tipoExpendio: radio("tipoExpendio"), venezolanos: radio("venezolanos"),
+                        funcionarios: leerFuncionarios() };
             CAMPOS_BORRADOR.forEach(id => b[id] = $(id).value);
             localStorage.setItem(CONFIG.CLAVE_BORRADOR, JSON.stringify(b));
         }catch(_){}
@@ -1123,7 +1260,9 @@ function restaurarBorrador(){
     try{
         const b = JSON.parse(localStorage.getItem(CONFIG.CLAVE_BORRADOR) || "null");
         if (!b) return;
-        if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos)) return;
+        const hayFunc = Array.isArray(b.funcionarios) && b.funcionarios.some(f => f.zap || f.sigla || f.nombre);
+        if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos || hayFunc)) return;
+        if (Array.isArray(b.funcionarios) && b.funcionarios.length) reiniciarFuncionarios(b.funcionarios);
         CAMPOS_BORRADOR.forEach(id => { if (b[id] != null) $(id).value = b[id]; });
         ["tipoExpendio","venezolanos"].forEach(n => {
             const r = form.querySelector(`input[name="${n}"][value="${b[n]}"]`);
@@ -1146,7 +1285,9 @@ function borrarBorrador(){
    INICIO
 ============================ */
 crearSeccionesFotos();
+agregarFuncionario({ zap: "" });
 restaurarBorrador();
+$("btnAgregarFunc").addEventListener("click", () => { agregarFuncionario({}, true); guardarBorrador(); });
 
 $("btnGPS").addEventListener("click", obtenerGPS);
 $("btnDireccion").addEventListener("click", () => {
@@ -1162,10 +1303,18 @@ $("btnDireccion").addEventListener("click", () => {
 ["barrio","direccion"].forEach(id => $(id).addEventListener("input", () => $(id).classList.remove("autollenado")));
 
 form.addEventListener("input", e => {
+    if (e.target.closest(".func") && e.target.value.trim()){
+        e.target.classList.remove("invalido");
+        if (!$("listaFuncionarios").querySelector(".invalido")) $("campoFuncionarios").classList.remove("con-error");
+    }
     if (e.target.matches("[required]") && e.target.type !== "radio" && e.target.value.trim()) marcarError(e.target, false);
     if (e.target.id !== "sitioWeb") guardarBorrador();
 });
 form.addEventListener("change", e => {
+    if (e.target.classList.contains("f-grado") && e.target.value){
+        e.target.classList.remove("invalido");
+        if (!$("listaFuncionarios").querySelector(".invalido")) $("campoFuncionarios").classList.remove("con-error");
+    }
     if (e.target.type === "radio") marcarError(e.target, false);
     guardarBorrador();
 });

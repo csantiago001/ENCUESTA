@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS registros (
     sustancia       TEXT,
     venezolanos     TEXT,
     marquillas      TEXT,
-    funcionarios    TEXT NOT NULL
+    funcionarios    TEXT NOT NULL,          -- texto legible: "ZAP 12 · SI Nombre" por línea
+    zap             TEXT,                   -- códigos ZAP del registro, separados por coma
+    funcionarios_json TEXT                  -- [{ zap, sigla, grado, nombre }]
 );
 
 CREATE INDEX IF NOT EXISTS idx_registros_recibido ON registros(recibido_en);
