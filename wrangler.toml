@@ -23,6 +23,5 @@ bucket_name = "mebuc-fotos"
 LINK_DIAS = "30"
 
 # Secretos (NO van aquí; se crean con `npx wrangler secret put NOMBRE`):
-#   FORM_KEY        código que usan los funcionarios en el formulario
 #   ADMIN_KEY       clave del panel de registros
 #   SIGNING_SECRET  texto aleatorio largo para firmar los enlaces de fotos

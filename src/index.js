@@ -2,7 +2,7 @@
  * Worker de Caracterización de Zonas de Expendios - MEBUC
  *
  * Rutas:
- *   POST   /api/caracterizaciones   guarda un registro + fotos   (cabecera X-Clave = FORM_KEY)
+ *   POST   /api/caracterizaciones   guarda un registro + fotos   (abierto, sin código)
  *   GET    /api/verificar           comprueba la clave del panel (Authorization: Bearer ADMIN_KEY)
  *   GET    /api/registros           lista registros con enlaces firmados a las fotos (admin)
  *   DELETE /api/registros/:id       elimina un registro y sus fotos (admin)
@@ -36,7 +36,7 @@ async function enrutar(request, env, url) {
     const { pathname } = url;
     const metodo = request.method;
 
-    if (pathname === "/api/caracterizaciones" && metodo === "POST") return crearRegistro(request, env);
+    if (pathname === "/api/caracterizaciones" && metodo === "POST") return crearRegistro(request, env, url);
 
     if (pathname === "/api/verificar" && metodo === "GET") {
         const fallo = verificarAdmin(request, env);
@@ -107,10 +107,11 @@ function texto(v, max = 2000) {
     return typeof v === "string" ? v.trim().slice(0, max) : "";
 }
 
-async function crearRegistro(request, env) {
-    if (!env.FORM_KEY) return json({ error: "Falta configurar FORM_KEY en el servidor" }, 500);
-    if (!iguales(request.headers.get("X-Clave"), env.FORM_KEY)) {
-        return json({ error: "Código de acceso inválido" }, 401);
+async function crearRegistro(request, env, url) {
+    // El formulario es abierto (sin código). Solo se aceptan envíos desde la propia página.
+    const origen = request.headers.get("Origin");
+    if (origen && origen !== url.origin) {
+        return json({ error: "Origen no permitido" }, 403);
     }
 
     const tipoContenido = request.headers.get("Content-Type") || "";
@@ -124,6 +125,11 @@ async function crearRegistro(request, env) {
         d = JSON.parse(fd.get("datos"));
     } catch {
         return json({ error: "Datos del formulario no válidos" }, 400);
+    }
+
+    // Campo trampa: las personas no lo ven; si viene lleno es un robot. Se responde "ok" sin guardar.
+    if (typeof d.sitio_web === "string" && d.sitio_web.trim() !== "") {
+        return json({ ok: true, id: texto(d.id_registro, 64) }, 201);
     }
 
     const registro = {

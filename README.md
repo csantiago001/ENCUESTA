@@ -6,7 +6,7 @@ Funciona sobre Cloudflare (Workers + D1 + R2).
 | Parte | Dirección | Qué hace |
 |---|---|---|
 | Formulario | `https://<su-worker>.workers.dev/` | Registro del punto con GPS, dirección automática y cámara. |
-| Panel | `https://<su-worker>.workers.dev/panel` | Todas las respuestas, fotos descargables, filtros y **Descargar Excel**. |
+| Panel | `https://<su-worker>.workers.dev/panel` | Avance con gráficos y mapa, todas las respuestas, fotos descargables, filtros y **Descargar Excel**. |
 
 ```
 ├── public/index.html   formulario
@@ -48,7 +48,6 @@ En el Worker: **Settings → Variables and Secrets → Add**, tipo **Secret**:
 
 | Nombre | Valor |
 |---|---|
-| `FORM_KEY` | Código que usarán los funcionarios en el formulario |
 | `ADMIN_KEY` | Clave del panel (larga y diferente a la anterior) |
 | `SIGNING_SECRET` | Texto aleatorio largo (40+ caracteres); nadie necesita recordarlo |
 
@@ -65,16 +64,18 @@ Pulse **Deploy** para aplicar.
 **Formulario**
 - **📍 Obtener ubicación y dirección**: captura coordenadas y sugiere barrio, “Carrera X con Calle Y” y municipio (quedan en verde y se pueden corregir). Sin señal: escriba latitud/longitud y use “Buscar dirección”.
 - **📷 Abrir cámara**: abre la cámara dentro de la página; ⟲ cambia de cámara. Hasta 6 fotos por sección.
-- El código de acceso se escribe una vez y queda recordado en el dispositivo.
+- El formulario es abierto: quien tenga el enlace puede llenarlo, sin código.
 
 **Panel**
+- Gráficos de avance: registros por día, por municipio, barrios con más puntos, vinculación de venezolanos, fotos por tipo y mapa de puntos (naranja = fijo, azul = móvil). Todo responde a los filtros.
 - Toque una fila para ver el detalle y descargar cada foto. Puede eliminar registros de prueba.
 - **Descargar Excel** exporta lo filtrado: hoja *Caracterizaciones* (una columna por foto con enlace “Descargar foto” y enlace al mapa), hoja *Fotografías* y hoja *Información*.
 - Los enlaces de fotos vencen a los 30 días (`LINK_DIAS` en `wrangler.toml`); después se descarga un Excel nuevo.
 
 ## Seguridad
 
-- No se puede enviar sin `FORM_KEY` ni ver datos sin `ADMIN_KEY`. Las fotos solo se abren con enlaces firmados que vencen.
+- El formulario es abierto; solo acepta envíos desde la propia página y tiene un campo trampa contra robots. Para ver datos se necesita `ADMIN_KEY`. Las fotos solo se abren con enlaces firmados que vencen.
+- Comparta el enlace del formulario solo con el personal que debe llenarlo. Si llegan registros basura, se pueden eliminar desde el panel.
 - Quien tenga el Excel puede bajar las fotos mientras el enlace esté vigente: compártalo solo dentro de la unidad.
 - Recomendado: proteger `/panel*` y `/api/registros*` con **Cloudflare Access** (Zero Trust, gratis hasta 50 usuarios).
 - Las claves nunca se escriben en el código ni en GitHub; solo en Cloudflare. Cambiar `SIGNING_SECRET` invalida todos los enlaces anteriores.

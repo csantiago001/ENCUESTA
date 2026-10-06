@@ -376,11 +376,10 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 </template>
 
 <section class="card">
-    <div class="field">
-        <label for="claveAcceso">Código de acceso de la unidad <span class="required">*</span></label>
-        <input id="claveAcceso" type="password" autocomplete="off" required>
-        <div class="hint">Se recuerda en este dispositivo para los siguientes registros.</div>
-        <div class="error-msg">Ingrese un código de acceso válido.</div>
+    <!-- Campo trampa contra envíos automáticos: las personas no lo ven -->
+    <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+        <label for="sitioWeb">No llenar</label>
+        <input id="sitioWeb" name="sitio_web" type="text" tabindex="-1" autocomplete="off">
     </div>
 
     <div class="acciones">
@@ -435,8 +434,7 @@ const CONFIG = {
     MAX_LADO_PX: 1600,
     CALIDAD_JPEG: 0.8,
     PRECISION_ACEPTABLE_M: 30,
-    CLAVE_BORRADOR: "mebuc_caracterizacion_borrador",
-    CLAVE_ACCESO: "mebuc_codigo_acceso"
+    CLAVE_BORRADOR: "mebuc_caracterizacion_borrador"
 };
 
 const TIPOS_FOTO = [
@@ -978,7 +976,8 @@ function recolectarDatos(){
         sustancia:      $("sustancia").value.trim(),
         venezolanos:    radio("venezolanos"),
         marquillas:     $("marquillas").value.trim(),
-        funcionarios:   $("funcionarios").value.trim()
+        funcionarios:   $("funcionarios").value.trim(),
+        sitio_web:      $("sitioWeb").value
     };
 }
 
@@ -991,11 +990,10 @@ function construirFormData(datos){
     return fd;
 }
 
-function enviar(fd, clave){
+function enviar(fd){
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", CONFIG.API_URL);
-        xhr.setRequestHeader("X-Clave", clave);
         xhr.timeout = 180000;
         xhr.upload.onprogress = e => {
             if (!e.lengthComputable) return;
@@ -1046,7 +1044,6 @@ form.addEventListener("submit", async e => {
         return;
     }
 
-    const clave = $("claveAcceso").value.trim();
     if (!idRegistro) idRegistro = generarId();
     const datos = recolectarDatos();
 
@@ -1054,18 +1051,12 @@ form.addEventListener("submit", async e => {
     mostrarEstado("Enviando información...");
 
     try{
-        await enviar(construirFormData(datos), clave);
-        try{ localStorage.setItem(CONFIG.CLAVE_ACCESO, clave); }catch(_){}
+        await enviar(construirFormData(datos));
         mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}).`, "ok");
         reiniciarFormulario();
     }catch(err){
         console.error(err);
-        if (err.status === 401){
-            marcarError($("claveAcceso"), true);
-            try{ localStorage.removeItem(CONFIG.CLAVE_ACCESO); }catch(_){}
-            mostrarEstado("✗ El código de acceso no es válido.", "err");
-            $("claveAcceso").focus();
-        } else if (err.status === 400 || err.status === 413){
+        if (err.status === 400 || err.status === 413){
             mostrarEstado("✗ " + err.message, "err");
         } else {
             mostrarEstado(
@@ -1080,9 +1071,7 @@ form.addEventListener("submit", async e => {
 });
 
 function reiniciarFormulario(){
-    const clave = $("claveAcceso").value;
     form.reset();
-    $("claveAcceso").value = clave;
     limpiarFotos();
     precisionGPS = null;
     direccionGPS = "";
@@ -1141,7 +1130,6 @@ function borrarBorrador(){
 ============================ */
 crearSeccionesFotos();
 restaurarBorrador();
-try{ $("claveAcceso").value = localStorage.getItem(CONFIG.CLAVE_ACCESO) || ""; }catch(_){}
 
 $("btnGPS").addEventListener("click", obtenerGPS);
 $("btnDireccion").addEventListener("click", () => {
@@ -1158,7 +1146,7 @@ $("btnDireccion").addEventListener("click", () => {
 
 form.addEventListener("input", e => {
     if (e.target.matches("[required]") && e.target.type !== "radio" && e.target.value.trim()) marcarError(e.target, false);
-    if (e.target.id !== "claveAcceso") guardarBorrador();
+    if (e.target.id !== "sitioWeb") guardarBorrador();
 });
 form.addEventListener("change", e => {
     if (e.target.type === "radio") marcarError(e.target, false);

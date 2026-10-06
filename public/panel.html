@@ -7,6 +7,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Registros de Caracterización - MEBUC</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <style>
 :root{
@@ -73,6 +75,8 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 /* ---------- Filtros ---------- */
 .filtros{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; }
 .filtros .botones{ display:flex; gap:8px; }
+.filtros > *{ min-width:0; }
+.filtros .botones button{ min-width:0; }
 .nota{ font-size:12px; color:var(--gris); margin-top:10px; }
 
 /* ---------- Tabla ---------- */
@@ -118,6 +122,64 @@ tr.fila:hover td{ background:#f7fafd; }
 }
 .sin-fotos{ font-size:13px; color:var(--gris); }
 .acciones-detalle{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; padding-top:16px; border-top:1px solid var(--borde); }
+
+
+/* ---------- Avance: gráficos ---------- */
+.viz{
+    --serie-1:#2a78d6;   /* azul: Móvil y barras de una sola serie */
+    --serie-2:#eb6834;   /* naranja: Fijo */
+    --tinta-1:#17202a; --tinta-2:#52514e; --tinta-3:#8a8f98;
+    --rejilla:#e9edf1;
+}
+.graficos{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
+.graficos .card{ margin-bottom:0; }
+.graficos .ancho{ grid-column:1 / -1; }
+.g-titulo{ font-size:15px; font-weight:700; color:var(--azul); margin:0 0 4px; }
+.g-sub{ font-size:12px; color:var(--gris); margin:0 0 14px; }
+.g-vacio{ font-size:13px; color:var(--gris); padding:24px 0; text-align:center; }
+
+/* Columnas por día */
+.columnas{ position:relative; height:200px; margin-left:34px; }
+.columnas .rejilla{ position:absolute; left:0; right:0; border-top:1px solid var(--rejilla); }
+.columnas .rejilla span{
+    position:absolute; right:calc(100% + 6px); top:-8px; font-size:11px; color:var(--tinta-3);
+    font-variant-numeric:tabular-nums;
+}
+.columnas .barras{ position:absolute; inset:0; display:flex; align-items:flex-end; gap:2px; }
+.columnas .col{ flex:1; height:100%; display:flex; align-items:flex-end; cursor:default; min-width:0; }
+.columnas .col i{
+    display:block; width:100%; max-width:42px; margin:0 auto; background:var(--serie-1);
+    border-radius:4px 4px 0 0; min-height:0;
+}
+.columnas .col:hover i{ filter:brightness(.85); }
+.ejes-x{ display:flex; justify-content:space-between; margin:6px 0 0 34px; font-size:11px; color:var(--tinta-3); }
+.tooltip{
+    position:fixed; z-index:60; pointer-events:none; background:#17202a; color:#fff;
+    font-size:12px; padding:6px 9px; border-radius:6px; white-space:nowrap; display:none;
+}
+.tooltip b{ font-variant-numeric:tabular-nums; }
+
+/* Barras horizontales */
+.hbarras{ display:flex; flex-direction:column; gap:8px; }
+.hfila{ display:grid; grid-template-columns:minmax(90px,38%) 1fr 34px; align-items:center; gap:10px; font-size:13px; }
+.hfila .et{ color:var(--tinta-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hfila .pista{ height:14px; }
+.hfila .pista i{ display:block; height:100%; background:var(--serie-1); border-radius:0 4px 4px 0; min-width:2px; }
+.hfila .val{ text-align:right; color:var(--tinta-1); font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* Mapa */
+#mapa{ height:420px; border-radius:10px; border:1px solid var(--borde); z-index:0; }
+.leyenda{ display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--tinta-2); margin:0 0 10px; }
+.leyenda span{ display:inline-flex; align-items:center; gap:6px; }
+.leyenda i{ width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #c9d0d8; }
+.popup b{ display:block; color:var(--azul); margin-bottom:2px; }
+.popup .p-sub{ color:#667085; font-size:12px; margin-bottom:6px; }
+.popup button{ min-height:32px; padding:6px 12px; font-size:12px; }
+
+@media (max-width:900px){
+    .graficos{ grid-template-columns:1fr; }
+    #mapa{ height:340px; }
+}
 
 .footer{ text-align:center; color:#7a8691; font-size:12px; padding:20px; }
 
@@ -203,6 +265,46 @@ tr.fila:hover td{ background:#f7fafd; }
         </div>
         <div class="nota" id="notaEnlaces"></div>
     </section>
+
+
+    <div class="viz">
+        <div class="graficos">
+            <section class="card ancho">
+                <h2 class="g-titulo">Registros por día</h2>
+                <p class="g-sub" id="subDias">Cantidad de caracterizaciones registradas en cada fecha.</p>
+                <div id="gDias"></div>
+            </section>
+            <section class="card">
+                <h2 class="g-titulo">Por municipio</h2>
+                <p class="g-sub">Número de puntos caracterizados.</p>
+                <div id="gMunicipios"></div>
+            </section>
+            <section class="card">
+                <h2 class="g-titulo">Barrios con más puntos</h2>
+                <p class="g-sub">Los 10 barrios con más registros.</p>
+                <div id="gBarrios"></div>
+            </section>
+            <section class="card">
+                <h2 class="g-titulo">Vinculación de extranjeros venezolanos</h2>
+                <p class="g-sub">Respuestas registradas.</p>
+                <div id="gVenezolanos"></div>
+            </section>
+            <section class="card">
+                <h2 class="g-titulo">Fotografías por tipo</h2>
+                <p class="g-sub">Total de fotos tomadas.</p>
+                <div id="gFotos"></div>
+            </section>
+            <section class="card ancho">
+                <h2 class="g-titulo">Mapa de puntos</h2>
+                <div class="leyenda">
+                    <span><i style="background:var(--serie-2)"></i>Fijo</span>
+                    <span><i style="background:var(--serie-1)"></i>Móvil</span>
+                </div>
+                <div id="mapa" role="region" aria-label="Mapa de puntos de expendio"></div>
+            </section>
+        </div>
+    </div>
+    <div class="tooltip" id="tooltip" role="tooltip"></div>
 
     <section class="card">
         <div class="tabla-wrap">
@@ -347,6 +449,7 @@ function pintar(){
     $("numFijos").textContent = filtrados.filter(r => r.tipo_expendio === "Fijo").length.toLocaleString("es-CO");
     $("numMoviles").textContent = filtrados.filter(r => r.tipo_expendio === "Móvil").length.toLocaleString("es-CO");
     $("btnExcel").disabled = filtrados.length === 0;
+    pintarGraficos();
 
     if (!filtrados.length){
         $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">${datos.registros.length ? "Ningún registro coincide con los filtros." : "Aún no hay registros."}</td></tr>`;
@@ -372,6 +475,162 @@ $("tbody").addEventListener("keydown", e => {
     const fila = e.target.closest("tr.fila");
     if (fila && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); abrirDetalle(filtrados[+fila.dataset.i]); }
 });
+
+
+/* ============================
+   GRÁFICOS DE AVANCE
+============================ */
+const tooltip = () => $("tooltip");
+function mostrarTip(e, html){
+    const t = tooltip();
+    t.innerHTML = html;
+    t.style.display = "block";
+    const w = t.offsetWidth;
+    let x = e.clientX + 12;
+    if (x + w > window.innerWidth - 8) x = e.clientX - w - 12;
+    t.style.left = x + "px";
+    t.style.top = (e.clientY - 34) + "px";
+}
+function ocultarTip(){ tooltip().style.display = "none"; }
+
+function contar(lista, clave){
+    const m = new Map();
+    lista.forEach(r => {
+        const k = (typeof clave === "function" ? clave(r) : r[clave]) || "Sin dato";
+        m.set(k, (m.get(k) || 0) + 1);
+    });
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function techo(n){
+    if (n <= 5) return 5;
+    const p = Math.pow(10, Math.floor(Math.log10(n)));
+    for (const f of [1, 2, 2.5, 5, 10]) if (f * p >= n) return f * p;
+    return 10 * p;
+}
+
+function barrasHorizontales(id, pares, unidad = "registros"){
+    const el = $(id);
+    if (!pares.length){ el.innerHTML = '<div class="g-vacio">Sin datos.</div>'; return; }
+    const max = Math.max(...pares.map(p => p[1]));
+    el.innerHTML = '<div class="hbarras">' + pares.map(([k, v]) => `
+        <div class="hfila" title="${esc(k)}: ${v} ${unidad}">
+            <span class="et">${esc(k)}</span>
+            <span class="pista"><i style="width:${(v / max * 100).toFixed(1)}%"></i></span>
+            <span class="val">${v.toLocaleString("es-CO")}</span>
+        </div>`).join("") + '</div>';
+}
+
+function graficoDias(lista){
+    const el = $("gDias");
+    if (!lista.length){ el.innerHTML = '<div class="g-vacio">Sin datos.</div>'; return; }
+
+    const dias = lista.map(r => diaCO(r.fecha_registro)).sort();
+    const ini = new Date(dias[0] + "T12:00:00"), fin = new Date(dias[dias.length - 1] + "T12:00:00");
+    const totalDias = Math.round((fin - ini) / 86400000) + 1;
+    const porSemana = totalDias > 45;
+
+    const clave = d => {
+        if (!porSemana) return d;
+        const f = new Date(d + "T12:00:00");
+        f.setDate(f.getDate() - ((f.getDay() + 6) % 7));    // lunes de esa semana
+        return f.toLocaleDateString("en-CA");
+    };
+    const cuentas = new Map();
+    for (let f = new Date(ini); f <= fin; f.setDate(f.getDate() + (porSemana ? 1 : 1))){
+        const k = clave(f.toLocaleDateString("en-CA"));
+        if (!cuentas.has(k)) cuentas.set(k, 0);
+    }
+    dias.forEach(d => cuentas.set(clave(d), (cuentas.get(clave(d)) || 0) + 1));
+    const serie = [...cuentas.entries()];
+
+    const corta = k => new Date(k + "T12:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+    $("subDias").textContent = porSemana
+        ? "Cantidad de caracterizaciones registradas por semana."
+        : "Cantidad de caracterizaciones registradas en cada fecha.";
+
+    let max = techo(Math.max(...serie.map(s => s[1])));
+    if (max % 2) max += 1;                                   // líneas guía en números enteros
+    const lineas = [0, max / 2, max].map(v =>
+        `<div class="rejilla" style="bottom:${v / max * 100}%"><span>${Number.isInteger(v) ? v : v.toFixed(1)}</span></div>`).join("");
+    const barras = serie.map(([k, v]) =>
+        `<div class="col" data-k="${k}" data-v="${v}"><i style="height:${v / max * 100}%"></i></div>`).join("");
+
+    const etq = serie.length === 1 ? [serie[0][0]]
+              : serie.length === 2 ? [serie[0][0], serie[1][0]]
+              : [serie[0][0], serie[Math.floor((serie.length - 1) / 2)][0], serie[serie.length - 1][0]];
+
+    el.innerHTML = `<div class="columnas">${lineas}<div class="barras">${barras}</div></div>
+        <div class="ejes-x">${etq.map(k => `<span>${porSemana ? "Sem. " : ""}${corta(k)}</span>`).join("")}</div>`;
+
+    el.querySelectorAll(".col").forEach(c => {
+        c.addEventListener("mousemove", e => {
+            const k = c.dataset.k, v = +c.dataset.v;
+            mostrarTip(e, `${porSemana ? "Semana del " : ""}${corta(k)}<br><b>${v}</b> ${v === 1 ? "registro" : "registros"}`);
+        });
+        c.addEventListener("mouseleave", ocultarTip);
+    });
+}
+
+function pintarGraficos(){
+    graficoDias(filtrados);
+    barrasHorizontales("gMunicipios", contar(filtrados, "municipio"));
+    barrasHorizontales("gBarrios", contar(filtrados, r => (r.barrio || "").trim()).slice(0, 10));
+    barrasHorizontales("gVenezolanos", contar(filtrados, "venezolanos"));
+    barrasHorizontales("gFotos",
+        TIPOS.map(t => [t.nombre, filtrados.reduce((n, r) => n + (r.fotos?.[t.id]?.length || 0), 0)])
+             .filter(p => p[1] > 0), "fotos");
+    pintarMapa();
+}
+
+/* ============================
+   MAPA
+============================ */
+let mapa = null, capaPuntos = null;
+
+function pintarMapa(){
+    if (!window.L) {
+        $("mapa").innerHTML = '<div class="g-vacio">No se pudo cargar el mapa. Revise la conexión.</div>';
+        return;
+    }
+    if (!mapa){
+        mapa = L.map("mapa", { scrollWheelZoom: false }).setView([7.119, -73.122], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(mapa);
+        capaPuntos = L.layerGroup().addTo(mapa);
+    }
+    capaPuntos.clearLayers();
+
+    const estilos = getComputedStyle(document.querySelector(".viz"));
+    const color = { "Fijo": estilos.getPropertyValue("--serie-2").trim(), "Móvil": estilos.getPropertyValue("--serie-1").trim() };
+    const puntos = [];
+
+    filtrados.forEach(r => {
+        if (!Number.isFinite(r.latitud) || !Number.isFinite(r.longitud)) return;
+        const m = L.circleMarker([r.latitud, r.longitud], {
+            radius: 8, weight: 2, color: "#ffffff", fillColor: color[r.tipo_expendio] || color["Móvil"], fillOpacity: 1
+        });
+        const div = document.createElement("div");
+        div.className = "popup";
+        div.innerHTML = `<b>${esc(r.barrio)} · ${esc(r.municipio)}</b>
+            <div>${esc(r.direccion)}</div>
+            <div class="p-sub">${esc(r.tipo_expendio)} · ${esc(fechaCO(r.fecha_registro))}</div>
+            <button type="button" class="btn-primary">Ver detalle</button>`;
+        div.querySelector("button").addEventListener("click", () => abrirDetalle(r));
+        m.bindPopup(div);
+        m.bindTooltip(`${esc(r.barrio)} (${esc(r.tipo_expendio)})`);
+        m.addTo(capaPuntos);
+        puntos.push([r.latitud, r.longitud]);
+    });
+
+    setTimeout(() => {
+        mapa.invalidateSize();
+        if (puntos.length === 1) mapa.setView(puntos[0], 16);
+        else if (puntos.length > 1) mapa.fitBounds(puntos, { padding: [30, 30], maxZoom: 16 });
+    }, 50);
+}
 
 /* ============================
    DETALLE
