@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#003b73">
 <meta name="robots" content="noindex, nofollow">
 <title>Caracterización de Zonas de Expendios - MEBUC</title>
+<script src="/dialogo.js"></script>
 
 <style>
 :root{
@@ -21,6 +22,7 @@
     --radio:12px;
 }
 *{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
 html{ -webkit-text-size-adjust:100%; }
 body{
     margin:0;
@@ -46,6 +48,13 @@ body{
 }
 .header h1{ margin:0; font-size:20px; }
 .header p{ margin:4px 0 0; opacity:.9; font-size:14px; }
+.btn-panel{
+    margin-left:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.35);
+    border-radius:9px; padding:10px 14px; min-height:44px; font-size:14px; font-weight:700; text-decoration:none;
+}
+.btn-panel:hover{ background:rgba(255,255,255,.26); }
+@media (max-width:520px){ .btn-panel{ padding:8px 10px; font-size:13px; } }
 
 /* ---------- Estructura ---------- */
 .container{ max-width:1050px; margin:22px auto; padding:0 16px; }
@@ -224,6 +233,7 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
             <h1>Caracterización de Zonas de Expendios</h1>
             <p>Policía Nacional de Colombia · MEBUC</p>
         </div>
+        <a class="btn-panel" href="/panel" title="Ver el avance de la encuesta (requiere clave)">📊 <span>Panel</span></a>
     </div>
 </header>
 
@@ -895,7 +905,12 @@ async function buscarDireccion(lat, lon){
 
     const yaEscrito = ($("barrio").value.trim() && barrio && $("barrio").value.trim() !== barrio) ||
                       ($("direccion").value.trim() && direccion && $("direccion").value.trim() !== direccion);
-    if (yaEscrito && !confirm(`El GPS sugiere:\n\nBarrio: ${barrio || "(no encontrado)"}\nDirección: ${direccion || "(no encontrada)"}\n\n¿Reemplazar lo que ya escribió?`)){
+    if (yaEscrito && !(await confirmar("¿Desea reemplazar el barrio y la dirección que ya escribió por los sugeridos?", {
+            titulo: "Dirección sugerida por GPS",
+            aceptar: "Reemplazar",
+            cancelar: "Conservar lo mío",
+            datos: [["Barrio", barrio || "(no encontrado)"], ["Dirección", direccion || "(no encontrada)"]]
+        }))){
         setEstado(estado, "Se conservó el barrio y la dirección escritos manualmente.");
         return;
     }
@@ -1040,7 +1055,9 @@ form.addEventListener("submit", async e => {
         return;
     }
     if (fotos.punto.length === 0 &&
-        !confirm("No ha agregado fotografías del punto de expendio. ¿Desea guardar de todas formas?")){
+        !(await confirmar("No ha agregado fotografías del punto de expendio. ¿Desea guardar de todas formas?", {
+            titulo: "Falta la foto del punto", tipo: "aviso", aceptar: "Guardar sin foto", cancelar: "Tomar foto"
+        }))){
         return;
     }
 
@@ -1154,8 +1171,10 @@ form.addEventListener("change", e => {
 });
 
 $("btnDescartar").addEventListener("click", () => { reiniciarFormulario(); mostrarEstado(""); });
-$("btnLimpiar").addEventListener("click", () => {
-    if (confirm("¿Desea borrar toda la información del formulario?")){ reiniciarFormulario(); mostrarEstado(""); }
+$("btnLimpiar").addEventListener("click", async () => {
+    if (await confirmar("Se borrará toda la información y las fotografías del formulario.", {
+        titulo: "¿Limpiar formulario?", tipo: "peligro", aceptar: "Sí, borrar todo"
+    })){ reiniciarFormulario(); mostrarEstado(""); }
 });
 
 window.addEventListener("beforeunload", e => {

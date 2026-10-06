@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#003b73">
 <meta name="robots" content="noindex, nofollow">
 <title>Registros de Caracterización - MEBUC</title>
+<script src="/dialogo.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -17,6 +18,7 @@
     --sombra:0 8px 30px rgba(0,0,0,.08);
 }
 *{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
 body{
     margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     background:#f3f6f9; color:#17202a; line-height:1.4;
@@ -32,7 +34,8 @@ body{
 }
 .header h1{ margin:0; font-size:19px; }
 .header p{ margin:3px 0 0; opacity:.9; font-size:13px; }
-.header .salir{ margin-left:auto; }
+.header .acciones-top{ margin-left:auto; display:flex; gap:8px; }
+.header .acciones-top a{ text-decoration:none; }
 
 .container{ max-width:1300px; margin:20px auto; padding:0 16px; }
 .card{ background:#fff; border-radius:14px; padding:20px; margin-bottom:18px; box-shadow:var(--sombra); }
@@ -192,7 +195,9 @@ tr.fila:hover td{ background:#f7fafd; }
 }
 @media (max-width:600px){
     .campos{ grid-template-columns:1fr; }
-    .header .salir span{ display:none; }
+    .header h1{ font-size:17px; }
+    .header .acciones-top{ flex-direction:column; gap:6px; }
+    .header .acciones-top .btn, .header .acciones-top button{ min-height:36px; padding:6px 10px; font-size:13px; }
     .col-opc{ display:none; }
 }
 </style>
@@ -206,7 +211,10 @@ tr.fila:hover td{ background:#f7fafd; }
             <h1>Registros de caracterización</h1>
             <p>Policía Nacional de Colombia · MEBUC</p>
         </div>
-        <button type="button" class="btn-claro salir" id="btnSalir" hidden>⎋ <span>Salir</span></button>
+        <div class="acciones-top">
+            <a class="btn btn-claro salir" href="/" title="Ir al formulario">📝 <span>Formulario</span></a>
+            <button type="button" class="btn-claro salir" id="btnSalir" hidden>🔒 <span>Salir</span></button>
+        </div>
     </div>
 </header>
 
@@ -382,7 +390,11 @@ $("formLogin").addEventListener("submit", async e => {
         try{ sessionStorage.setItem(CLAVE_SESION, clave); }catch(_){}
         mostrarPanel();
     }catch(err){
-        $("errorLogin").textContent = err.status === 401 ? "Clave incorrecta." : "No fue posible conectar con el servidor.";
+        $("errorLogin").textContent =
+            err.status === 401 ? "Clave incorrecta. Revise mayúsculas, minúsculas y espacios." :
+            /ADMIN_KEY/.test(err.message) ? "El servidor aún no tiene la clave ADMIN_KEY. Créela en Cloudflare: Configuración → Variables y secretos." :
+            err.status ? "Error del servidor: " + err.message :
+            "No fue posible conectar con el servidor. Revise la conexión a internet.";
     }finally{
         $("btnEntrar").disabled = false;
     }
@@ -693,14 +705,18 @@ $("fondoDetalle").addEventListener("click", e => { if (e.target === $("fondoDeta
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("fondoDetalle").hidden) cerrarDetalle(); });
 
 async function eliminar(r){
-    if (!confirm(`¿Eliminar definitivamente el registro de ${r.barrio} (${r.municipio}) y sus ${totalFotos(r)} fotografías?\n\nEsta acción no se puede deshacer.`)) return;
+    const ok = await confirmar(`Se eliminará el registro y sus ${totalFotos(r)} fotografías. Esta acción no se puede deshacer.`, {
+        titulo: "¿Eliminar registro?", tipo: "peligro", aceptar: "Eliminar",
+        datos: [["Barrio", r.barrio], ["Municipio", r.municipio], ["Dirección", r.direccion]]
+    });
+    if (!ok) return;
     try{
         await api("/registros/" + encodeURIComponent(r.id), { method: "DELETE" });
         cerrarDetalle();
         datos.registros = datos.registros.filter(x => x.id !== r.id);
         filtrar();
     }catch(err){
-        alert("No fue posible eliminar: " + err.message);
+        avisar("No fue posible eliminar el registro: " + err.message, { titulo: "Error", tipo: "peligro" });
     }
 }
 
@@ -801,7 +817,7 @@ function construirLibro(XLSX, registros, enlacesExpiran){
 
 $("btnExcel").addEventListener("click", () => {
     if (!window.XLSX){
-        alert("No se pudo cargar el generador de Excel. Revise la conexión a internet y recargue la página.");
+        avisar("No se pudo cargar el generador de Excel. Revise la conexión a internet y recargue la página.", { titulo: "Excel no disponible", tipo: "aviso" });
         return;
     }
     const wb = construirLibro(XLSX, filtrados, datos.enlaces_expiran);
