@@ -51,7 +51,10 @@ async function asegurarEsquema(env) {
     for (const sql of [
         "ALTER TABLE registros ADD COLUMN zap TEXT",
         "ALTER TABLE registros ADD COLUMN funcionarios_json TEXT",
-        "ALTER TABLE fotos ADD COLUMN mini_key TEXT"
+        "ALTER TABLE fotos ADD COLUMN mini_key TEXT",
+        "ALTER TABLE registros ADD COLUMN correo_registra TEXT",
+        "ALTER TABLE registros ADD COLUMN nombre_registra TEXT",
+        "ALTER TABLE registros ADD COLUMN sustancias_json TEXT"
     ]) {
         try {
             await env.DB.prepare(sql).run();
@@ -181,6 +184,9 @@ async function crearRegistro(request, env, url) {
         tipo_expendio: texto(d.tipo_expendio, 20),
         actor: texto(d.actor),
         sustancia: texto(d.sustancia),
+        sustancias_json: "[]",
+        correo_registra: texto(d.correo_registra, 120).toLowerCase(),
+        nombre_registra: texto(d.nombre_registra, 120),
         venezolanos: ["SI", "NO"].includes(d.venezolanos) ? d.venezolanos : "",
         marquillas: texto(d.marquillas),
         funcionarios: "",
@@ -202,7 +208,26 @@ async function crearRegistro(request, env, url) {
         registro.funcionarios_json = JSON.stringify(funcionarios);
     }
 
+    // Sustancias: [{ id, nombre, otra, valor }]
+    if (Array.isArray(d.sustancias_lista)) {
+        const sustancias = d.sustancias_lista.slice(0, 30).map(x => {
+            const valor = Number(x && x.valor);
+            return {
+                id: texto(x && x.id, 20),
+                nombre: texto(x && x.nombre, 80),
+                otra: texto(x && x.otra, 80),
+                valor: Number.isFinite(valor) && valor > 0 ? Math.round(valor) : null
+            };
+        }).filter(x => x.id && x.nombre);
+        registro.sustancias_json = JSON.stringify(sustancias);
+        registro.sustancia = sustancias
+            .map(x => x.nombre + (x.valor ? ` ($${x.valor.toLocaleString("es-CO")})` : ""))
+            .join(" · ");
+    }
+
     const errores = [];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(registro.correo_registra)) errores.push("correo electrónico");
+    if (registro.nombre_registra.split(/\s+/).filter(Boolean).length < 2) errores.push("nombre completo");
     if (!/^[A-Za-z0-9-]{8,64}$/.test(registro.id)) errores.push("identificador");
     if (!MUNICIPIOS.includes(registro.municipio)) errores.push("municipio");
     if (!registro.barrio) errores.push("barrio");
@@ -219,13 +244,15 @@ async function crearRegistro(request, env, url) {
         await env.DB.prepare(`INSERT INTO registros
             (id, fecha_registro, recibido_en, municipio, barrio, direccion, direccion_gps,
              latitud, longitud, precision_m, coordenadas, tipo_expendio, actor, sustancia,
-             venezolanos, marquillas, funcionarios, zap, funcionarios_json)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
+             venezolanos, marquillas, funcionarios, zap, funcionarios_json,
+             correo_registra, nombre_registra, sustancias_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
             registro.id, registro.fecha_registro, registro.recibido_en, registro.municipio,
             registro.barrio, registro.direccion, registro.direccion_gps,
             registro.latitud, registro.longitud, registro.precision_m, registro.coordenadas,
             registro.tipo_expendio, registro.actor, registro.sustancia, registro.venezolanos,
-            registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json
+            registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json,
+            registro.correo_registra, registro.nombre_registra, registro.sustancias_json
         ).run();
     }
 
@@ -321,8 +348,10 @@ async function listarRegistros(env, url) {
         for (const t of TIPOS) agrupadas[t] = lista.filter(f => f.tipo === t);
         let funcionariosLista = [];
         try { funcionariosLista = JSON.parse(r.funcionarios_json || "[]"); } catch { /* registro antiguo */ }
-        const { funcionarios_json, ...resto } = r;
-        return { ...resto, funcionarios_lista: funcionariosLista, fotos: agrupadas };
+        let sustanciasLista = [];
+        try { sustanciasLista = JSON.parse(r.sustancias_json || "[]"); } catch { /* registro antiguo */ }
+        const { funcionarios_json, sustancias_json, ...resto } = r;
+        return { ...resto, funcionarios_lista: funcionariosLista, sustancias_lista: sustanciasLista, fotos: agrupadas };
     });
 
     return json({

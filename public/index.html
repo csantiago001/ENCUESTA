@@ -168,6 +168,61 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 .btn-agregar{ width:100%; border:1px dashed #9fc4ae; background:#fff; color:var(--verde-700); }
 .btn-agregar:hover{ background:var(--verde-50); }
 
+
+/* ---------- Funcionario que diligencia ---------- */
+.card-ident{ border-top:3px solid var(--oro); }
+.ident-guardada{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; margin-bottom:10px;
+    background:var(--verde-50); border:1px solid #cfe3d7; border-radius:10px;
+}
+.ident-guardada .avatar{
+    flex:0 0 40px; height:40px; border-radius:50%; background:var(--verde-700); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px;
+}
+.ident-datos{ min-width:0; flex:1; }
+.ident-datos b{ display:block; font-size:14.5px; color:var(--tinta); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ident-datos span{ display:block; font-size:12.5px; color:var(--gris); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ---------- Sustancias ---------- */
+.sust-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px; }
+.sust{ position:relative; margin:0; font-weight:600; }
+.sust input{ position:absolute; opacity:0; pointer-events:none; }
+.sust span{
+    display:flex; flex-direction:column; justify-content:center; min-height:46px; padding:7px 10px 7px 34px;
+    border:1px solid var(--borde); border-radius:8px; background:#fff; cursor:pointer; user-select:none;
+    font-size:13.5px; line-height:1.2; position:relative;
+}
+.sust span small{ font-weight:500; font-size:11px; color:var(--gris); margin-top:2px; }
+.sust span::before{
+    content:""; position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    width:16px; height:16px; border-radius:4px; border:2px solid #9fb3a8; background:#fff;
+}
+.sust input:checked + span{ background:var(--verde-50); border-color:var(--verde-600); color:var(--verde-800); }
+.sust input:checked + span::before{
+    background:var(--verde-600) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat;
+    border-color:var(--verde-600);
+}
+.sust input:focus-visible + span{ box-shadow:0 0 0 3px rgba(18,122,71,.25); }
+.sust.otra span{ border-style:dashed; }
+.sust-elegidas{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.sust-elegidas:empty{ display:none; }
+.sust-fila{
+    display:grid; grid-template-columns:1fr 150px; gap:8px; align-items:center;
+    padding:8px 10px; border:1px solid #cfe3d7; border-left:3px solid var(--verde-600); border-radius:8px; background:var(--verde-50);
+}
+.sust-fila.con-otra{ grid-template-columns:1fr 1fr 150px; }
+.sust-fila .nombre{ font-weight:700; font-size:13.5px; color:var(--verde-800); }
+.sust-fila input{ padding:8px 10px; }
+.precio{ position:relative; }
+.precio::before{ content:"$"; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--gris); font-weight:700; }
+.precio input{ padding-left:22px; }
+@media (max-width:700px){
+    .sust-lista{ grid-template-columns:1fr 1fr; }
+    .sust-fila{ grid-template-columns:1fr 130px; }
+    .sust-fila.con-otra{ grid-template-columns:1fr 130px; }
+    .sust-fila.con-otra .nombre{ grid-column:1 / -1; }
+}
+
 /* ---------- Fotos ---------- */
 .photo-area{
     border:1px dashed #b6cbbf; border-radius:var(--radio); padding:12px;
@@ -311,6 +366,34 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 
 <form id="encuestaForm" novalidate>
 
+<!-- IDENTIFICACIÓN DE QUIEN DILIGENCIA -->
+<section class="card card-ident">
+    <h2 class="section-title">Funcionario que diligencia</h2>
+    <div class="ident-guardada" id="identGuardada" hidden>
+        <div class="avatar" id="identAvatar" aria-hidden="true"></div>
+        <div class="ident-datos">
+            <b id="identNombreTxt"></b>
+            <span id="identCorreoTxt"></span>
+        </div>
+        <button type="button" class="btn-secondary btn-chico" id="btnCambiarIdent">Cambiar</button>
+    </div>
+    <div class="grid" id="identCampos">
+        <div class="field">
+            <label for="correoRegistra">Correo electrónico <span class="required">*</span></label>
+            <input id="correoRegistra" name="correo_registra" type="email" inputmode="email" autocomplete="email"
+                   autocapitalize="off" spellcheck="false" maxlength="120" placeholder="nombre.apellido@correo.policia.gov.co" required>
+            <div class="error-msg">Escriba un correo electrónico válido.</div>
+        </div>
+        <div class="field">
+            <label for="nombreRegistra">Nombre completo <span class="required">*</span></label>
+            <input id="nombreRegistra" name="nombre_registra" type="text" autocomplete="name" maxlength="120"
+                   placeholder="Nombres y apellidos" required>
+            <div class="error-msg">Escriba su nombre completo (nombres y apellidos).</div>
+        </div>
+    </div>
+    <div class="hint">Sus datos quedan guardados en este celular para los siguientes registros.</div>
+</section>
+
 <!-- 1. INFORMACIÓN GEOGRÁFICA -->
 <section class="card">
     <h2 class="section-title">1. Información geográfica</h2>
@@ -396,10 +479,12 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
         <textarea id="actor" name="actor" maxlength="1000" placeholder="Ej. Los del Sur, alias Pepito..."></textarea>
     </div>
 
-    <div class="field">
-        <label for="sustancia">Tipo de sustancia y valor de la dosis</label>
-        <textarea id="sustancia" name="sustancia" maxlength="1000"
-                  placeholder="Ej. Marihuana ($), cocaína ($), bazuco ($), tusi ($)"></textarea>
+    <div class="field" id="campoSustancias">
+        <span class="label">Tipo de sustancia y valor de la dosis</span>
+        <div class="hint" style="margin:-2px 0 8px">Marque las sustancias que se comercializan y escriba el valor de la dosis.</div>
+        <div class="sust-lista" id="listaSustancias"></div>
+        <div class="sust-elegidas" id="sustElegidas"></div>
+        <div class="error-msg">Escriba el nombre de la sustancia en “Otra”.</div>
     </div>
 
     <div class="field">
@@ -1113,6 +1198,134 @@ async function buscarDireccion(lat, lon){
 }
 
 
+
+/* ============================
+   SUSTANCIAS (lista con valor de la dosis)
+============================ */
+const SUSTANCIAS = [
+    ["marihuana",   "Marihuana",            "Cannabis"],
+    ["cripy",       "Cripy",                "Marihuana de alta potencia"],
+    ["hachis",      "Hachís",               "Resina de cannabis"],
+    ["cocaina",     "Cocaína",              "Perico / clorhidrato"],
+    ["bazuco",      "Bazuco",               "Pasta base de cocaína"],
+    ["tusi",        "Tusi",                 "Cocaína rosada"],
+    ["2cb",         "2C-B",                 "Fenetilamina sintética"],
+    ["extasis",     "Éxtasis",              "MDMA / pepas"],
+    ["lsd",         "LSD",                  "Ácido / cartón"],
+    ["ketamina",    "Ketamina",             "Keta"],
+    ["popper",      "Popper",               "Nitrito de amilo"],
+    ["heroina",     "Heroína",              "Opioide"],
+    ["metanfetamina","Metanfetamina",       "Cristal / hielo"],
+    ["fentanilo",   "Fentanilo",            "Opioide sintético"],
+    ["hongos",      "Hongos",               "Psilocibina"],
+    ["pastillas",   "Pastillas",            "Clonazepam, rivotril, roche"],
+    ["inhalantes",  "Inhalantes",           "Pegante, dick, solventes"],
+    ["escopolamina","Escopolamina",         "Burundanga"],
+    ["otra",        "Otra",                 "Escriba cuál"]
+];
+
+function crearListaSustancias(){
+    const cont = $("listaSustancias");
+    cont.innerHTML = SUSTANCIAS.map(([id, nombre, desc]) => `
+        <label class="sust${id === "otra" ? " otra" : ""}">
+            <input type="checkbox" value="${id}">
+            <span>${nombre}<small>${desc}</small></span>
+        </label>`).join("");
+    cont.addEventListener("change", e => {
+        if (e.target.type === "checkbox"){ pintarSustanciasElegidas(); guardarBorrador(); }
+    });
+}
+
+function pintarSustanciasElegidas(valores){
+    const previos = valores || leerSustancias();
+    const cont = $("sustElegidas");
+    const marcadas = [...$("listaSustancias").querySelectorAll("input:checked")].map(i => i.value);
+    cont.replaceChildren();
+    marcadas.forEach(id => {
+        const [, nombre] = SUSTANCIAS.find(x => x[0] === id);
+        const prev = previos.find(x => x.id === id) || {};
+        const fila = document.createElement("div");
+        fila.className = "sust-fila" + (id === "otra" ? " con-otra" : "");
+        fila.dataset.id = id;
+        fila.innerHTML = `
+            <div class="nombre">${nombre}</div>
+            ${id === "otra" ? `<input class="s-otra" type="text" maxlength="80" placeholder="¿Cuál sustancia?" aria-label="Nombre de la otra sustancia">` : ""}
+            <div class="precio"><input class="s-valor" type="text" inputmode="numeric" maxlength="12" placeholder="Valor dosis" aria-label="Valor de la dosis de ${nombre}"></div>`;
+        if (id === "otra") fila.querySelector(".s-otra").value = prev.otra || "";
+        fila.querySelector(".s-valor").value = prev.valor ? formatoPesos(prev.valor) : "";
+        fila.querySelector(".s-valor").addEventListener("input", e => {
+            const n = e.target.value.replace(/\D/g, "");
+            e.target.value = n ? formatoPesos(Number(n)) : "";
+        });
+        cont.appendChild(fila);
+        if (id === "otra" && !valores && !prev.otra) setTimeout(() => fila.querySelector(".s-otra").focus(), 50);
+    });
+}
+
+const formatoPesos = n => Number(n).toLocaleString("es-CO");
+
+function leerSustancias(){
+    return [...$("sustElegidas").querySelectorAll(".sust-fila")].map(f => {
+        const id = f.dataset.id;
+        const nombreBase = SUSTANCIAS.find(x => x[0] === id)[1];
+        const otra = id === "otra" ? (f.querySelector(".s-otra").value.trim()) : "";
+        const v = Number((f.querySelector(".s-valor").value || "").replace(/\D/g, ""));
+        return { id, nombre: id === "otra" ? (otra || "Otra") : nombreBase, otra, valor: v > 0 ? v : null };
+    });
+}
+
+function marcarSustancias(lista){
+    $("listaSustancias").querySelectorAll("input").forEach(i => { i.checked = lista.some(x => x.id === i.value); });
+    pintarSustanciasElegidas(lista);
+}
+
+/* ============================
+   FUNCIONARIO QUE DILIGENCIA (correo y nombre, recordados en el celular)
+============================ */
+const CLAVE_IDENTIDAD = "mebuc_identidad";
+const correoValido = c => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c);
+
+function mostrarIdentidad(){
+    const correo = $("correoRegistra").value.trim(), nombre = $("nombreRegistra").value.trim();
+    const completa = correoValido(correo) && nombre.length >= 5;
+    $("identGuardada").hidden = !completa;
+    $("identCampos").hidden = completa;
+    if (completa){
+        $("identNombreTxt").textContent = nombre;
+        $("identCorreoTxt").textContent = correo;
+        $("identAvatar").textContent = nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join("");
+    }
+}
+
+function guardarIdentidad(){
+    const correo = $("correoRegistra").value.trim().toLowerCase(), nombre = $("nombreRegistra").value.trim();
+    if (correoValido(correo) && nombre.length >= 5){
+        try{ localStorage.setItem(CLAVE_IDENTIDAD, JSON.stringify({ correo, nombre })); }catch(_){}
+    }
+}
+
+function cargarIdentidad(){
+    try{
+        const d = JSON.parse(localStorage.getItem(CLAVE_IDENTIDAD) || "null");
+        if (d){ $("correoRegistra").value = d.correo || ""; $("nombreRegistra").value = d.nombre || ""; }
+    }catch(_){}
+    mostrarIdentidad();
+}
+
+function validarIdentidad(){
+    const correo = $("correoRegistra"), nombre = $("nombreRegistra");
+    const malCorreo = !correoValido(correo.value.trim());
+    const malNombre = nombre.value.trim().split(/\s+/).filter(Boolean).length < 2;
+    marcarError(correo, malCorreo);
+    marcarError(nombre, malNombre);
+    if (malCorreo || malNombre){
+        $("identCampos").hidden = false;
+        $("identGuardada").hidden = true;
+        return malCorreo ? correo : nombre;
+    }
+    return null;
+}
+
 /* ============================
    FUNCIONARIOS (ZAP, grado, nombre)
 ============================ */
@@ -1230,8 +1443,9 @@ function marcarError(campo, hayError){
 }
 
 function validar(){
-    let primero = null;
+    let primero = validarIdentidad();
     form.querySelectorAll("[required]").forEach(campo => {
+        if (campo.id === "correoRegistra" || campo.id === "nombreRegistra") return;
         const vacio = campo.type === "radio"
             ? !form.querySelector(`input[name="${campo.name}"]:checked`)
             : !campo.value.trim();
@@ -1245,6 +1459,12 @@ function validar(){
 
     const funcVacio = validarFuncionarios();
     if (funcVacio && !primero) primero = funcVacio;
+
+    const otra = $("sustElegidas").querySelector('.sust-fila[data-id="otra"] .s-otra');
+    const otraVacia = otra && !otra.value.trim();
+    if (otra) otra.classList.toggle("invalido", otraVacia);
+    $("campoSustancias").classList.toggle("con-error", !!otraVacia);
+    if (otraVacia && !primero) primero = otra;
 
     if (primero){
         primero.closest(".field, .gps-box")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1278,7 +1498,9 @@ function recolectarDatos(){
         coordenadas:    $("coordenadas").value,
         tipo_expendio:  radio("tipoExpendio"),
         actor:          $("actor").value.trim(),
-        sustancia:      $("sustancia").value.trim(),
+        sustancias_lista: leerSustancias(),
+        correo_registra: $("correoRegistra").value.trim().toLowerCase(),
+        nombre_registra: $("nombreRegistra").value.trim(),
         venezolanos:    radio("venezolanos"),
         marquillas:     $("marquillas").value.trim(),
         funcionarios_lista: leerFuncionarios(),
@@ -1399,6 +1621,7 @@ form.addEventListener("submit", async e => {
     try{
         if (!envio) await guardarDatos(datos);
         await subirFotos(datos);
+        guardarIdentidad();
         envio = null;
         mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}). Los funcionarios se conservaron para el siguiente registro.`, "ok");
         reiniciarFormulario(true);
@@ -1423,7 +1646,11 @@ form.addEventListener("submit", async e => {
 
 function reiniciarFormulario(conservarFuncionarios = false){
     const patrulla = conservarFuncionarios ? leerFuncionarios() : [];
+    const correoGuardado = $("correoRegistra").value, nombreGuardado = $("nombreRegistra").value;
     form.reset();
+    $("correoRegistra").value = correoGuardado; $("nombreRegistra").value = nombreGuardado;
+    mostrarIdentidad();
+    marcarSustancias([]);
     reiniciarFuncionarios(patrulla);
     limpiarFotos();
     precisionGPS = null;
@@ -1442,7 +1669,7 @@ function reiniciarFormulario(conservarFuncionarios = false){
 /* ============================
    BORRADOR AUTOMÁTICO (solo texto)
 ============================ */
-const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","sustancia","marquillas"];
+const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","marquillas"];
 let temporizador = null;
 
 function guardarBorrador(){
@@ -1450,7 +1677,7 @@ function guardarBorrador(){
     temporizador = setTimeout(() => {
         try{
             const b = { precision: precisionGPS, direccionGPS, tipoExpendio: radio("tipoExpendio"), venezolanos: radio("venezolanos"),
-                        funcionarios: leerFuncionarios() };
+                        funcionarios: leerFuncionarios(), sustancias: leerSustancias() };
             CAMPOS_BORRADOR.forEach(id => b[id] = $(id).value);
             localStorage.setItem(CONFIG.CLAVE_BORRADOR, JSON.stringify(b));
         }catch(_){}
@@ -1462,8 +1689,10 @@ function restaurarBorrador(){
         const b = JSON.parse(localStorage.getItem(CONFIG.CLAVE_BORRADOR) || "null");
         if (!b) return;
         const hayFunc = Array.isArray(b.funcionarios) && b.funcionarios.some(f => f.zap || f.sigla || f.nombre);
-        if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos || hayFunc)) return;
+        const haySust = Array.isArray(b.sustancias) && b.sustancias.length > 0;
+        if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos || hayFunc || haySust)) return;
         if (Array.isArray(b.funcionarios) && b.funcionarios.length) reiniciarFuncionarios(b.funcionarios);
+        if (Array.isArray(b.sustancias) && b.sustancias.length) marcarSustancias(b.sustancias);
         CAMPOS_BORRADOR.forEach(id => { if (b[id] != null) $(id).value = b[id]; });
         ["tipoExpendio","venezolanos"].forEach(n => {
             const r = form.querySelector(`input[name="${n}"][value="${b[n]}"]`);
@@ -1486,7 +1715,17 @@ function borrarBorrador(){
    INICIO
 ============================ */
 crearSeccionesFotos();
+crearListaSustancias();
+cargarIdentidad();
 agregarFuncionario({ zap: "" });
+$("btnCambiarIdent").addEventListener("click", () => {
+    $("identGuardada").hidden = true; $("identCampos").hidden = false; $("correoRegistra").focus();
+});
+["correoRegistra","nombreRegistra"].forEach(id => $(id).addEventListener("blur", () => {
+    if (correoValido($("correoRegistra").value.trim()) && $("nombreRegistra").value.trim().split(/\s+/).filter(Boolean).length >= 2){
+        guardarIdentidad();
+    }
+}));
 restaurarBorrador();
 $("btnAgregarFunc").addEventListener("click", () => { agregarFuncionario({}, true); guardarBorrador(); });
 
@@ -1529,6 +1768,9 @@ $("btnDireccion").addEventListener("click", () => {
 ["barrio","direccion"].forEach(id => $(id).addEventListener("input", () => $(id).classList.remove("autollenado")));
 
 form.addEventListener("input", e => {
+    if (e.target.classList.contains("s-otra") && e.target.value.trim()){
+        e.target.classList.remove("invalido"); $("campoSustancias").classList.remove("con-error");
+    }
     if (e.target.closest(".func") && e.target.value.trim()){
         e.target.classList.remove("invalido");
         if (!$("listaFuncionarios").querySelector(".invalido")) $("campoFuncionarios").classList.remove("con-error");
