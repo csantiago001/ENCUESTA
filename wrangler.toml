@@ -11,7 +11,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "mebuc-caracterizacion"
-database_id = "REEMPLAZAR_CON_EL_ID_DE_D1"
+database_id = "b8ad9ccc-2fc7-430e-be4a-5fc5c80f06fb"
 
 # Almacenamiento de fotografías
 [[r2_buckets]]
