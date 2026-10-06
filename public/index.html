@@ -376,9 +376,9 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 
 <form id="encuestaForm" novalidate>
 
-<!-- IDENTIFICACIÓN DE QUIEN DILIGENCIA -->
+<!-- 1. FUNCIONARIO QUE DILIGENCIA -->
 <section class="card card-ident">
-    <h2 class="section-title">Funcionario que diligencia</h2>
+    <h2 class="section-title">1. Funcionario que diligencia</h2>
     <div class="ident-guardada" id="identGuardada" hidden>
         <div class="avatar" id="identAvatar" aria-hidden="true"></div>
         <div class="ident-datos">
@@ -404,9 +404,9 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     <div class="hint">Sus datos quedan guardados en este celular para los siguientes registros.</div>
 </section>
 
-<!-- 1. INFORMACIÓN GEOGRÁFICA -->
+<!-- 2. INFORMACIÓN GEOGRÁFICA -->
 <section class="card">
-    <h2 class="section-title">1. Información geográfica</h2>
+    <h2 class="section-title">2. Información geográfica</h2>
 
     <div class="gps-box field" id="campoGPS">
         <span class="label">Ubicación del punto <span class="required">*</span></span>
@@ -471,9 +471,9 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     <div id="dirEstado" class="hint estado" aria-live="polite">Puede escribir el barrio y la dirección o llenarlos con el botón GPS.</div>
 </section>
 
-<!-- 2. CARACTERIZACIÓN -->
+<!-- 3. CARACTERIZACIÓN -->
 <section class="card">
-    <h2 class="section-title">2. Caracterización del expendio</h2>
+    <h2 class="section-title">3. Caracterización del expendio</h2>
 
     <div class="field">
         <span class="label">Tipo de expendio <span class="required">*</span></span>
@@ -514,18 +514,11 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
         <div class="error-msg">Describa las marquillas usadas para la comercialización.</div>
     </div>
 
-    <div class="field" id="campoFuncionarios">
-        <span class="label">Funcionarios que realizan la caracterización <span class="required">*</span></span>
-        <div class="hint" style="margin:-2px 0 10px">Escriba el código ZAP, el grado y el nombre de cada funcionario.</div>
-        <div id="listaFuncionarios" class="lista-func"></div>
-        <button type="button" class="btn-secondary btn-agregar" id="btnAgregarFunc">＋ Agregar funcionario</button>
-        <div class="error-msg" id="errorFunc">Complete el código ZAP, el grado y el nombre de cada funcionario.</div>
-    </div>
 </section>
 
-<!-- 3. ACTORES RECONOCIDOS -->
+<!-- 4. ACTORES RECONOCIDOS -->
 <section class="card">
-    <h2 class="section-title">3. Actores reconocidos en el punto</h2>
+    <h2 class="section-title">4. Actores reconocidos en el punto</h2>
     <div class="field" id="campoActores">
         <div class="hint" style="margin:0 0 10px">Registre cada actor: nombre o alias y su fotografía <span class="required">*</span>. Si es posible, agregue también la foto de la cédula.</div>
         <div id="listaActores" class="lista-actores"></div>
@@ -534,8 +527,19 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     </div>
 </section>
 
-<!-- 4-5. FOTOGRAFÍAS -->
+<!-- 5-6. FOTOGRAFÍAS -->
 <div id="seccionesFotos"></div>
+
+<!-- 7. FUNCIONARIOS -->
+<section class="card">
+    <h2 class="section-title">7. Funcionarios que realizan la caracterización <span class="required">*</span></h2>
+    <div class="field" id="campoFuncionarios">
+        <div class="hint" style="margin:-2px 0 10px">Escriba el código ZAP, el grado y el nombre de cada funcionario.</div>
+        <div id="listaFuncionarios" class="lista-func"></div>
+        <button type="button" class="btn-secondary btn-agregar" id="btnAgregarFunc">＋ Agregar funcionario</button>
+        <div class="error-msg" id="errorFunc">Complete el código ZAP, el grado y el nombre de cada funcionario.</div>
+    </div>
+</section>
 
 <template id="tplFotos">
     <section class="card">
@@ -642,8 +646,8 @@ const CONFIG = {
 
 // Secciones de fotos libres (varias fotos). Las del actor y su cédula van dentro de cada actor.
 const TIPOS_FOTO = [
-    { id: "marquilla", titulo: "4. Fotografía de la marquilla" },
-    { id: "punto",     titulo: "5. Fotografía del punto de expendio" }
+    { id: "marquilla", titulo: "5. Fotografía de la marquilla" },
+    { id: "punto",     titulo: "6. Fotografía del punto de expendio" }
 ];
 const TIPOS_SUBIDA = ["actor", "cedula", "marquilla", "punto"];
 
