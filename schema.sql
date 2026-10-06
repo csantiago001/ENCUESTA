@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS fotos (
     registro_id   TEXT NOT NULL REFERENCES registros(id) ON DELETE CASCADE,
     tipo          TEXT NOT NULL CHECK (tipo IN ('actor','marquilla','punto')),
     orden         INTEGER NOT NULL,
-    r2_key        TEXT NOT NULL UNIQUE,
+    r2_key        TEXT NOT NULL UNIQUE,     -- foto original, tal como se tomó
+    mini_key      TEXT,                     -- miniatura para el panel y el Excel
     tamano        INTEGER,
     content_type  TEXT
 );

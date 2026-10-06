@@ -72,6 +72,12 @@ Pulse **Deploy** para aplicar.
 - **Descargar Excel** exporta lo filtrado: hoja *Caracterizaciones* (una columna por foto con enlace “Descargar foto” y enlace al mapa), hoja *Fotografías* y hoja *Información*.
 - Los enlaces de fotos vencen a los 30 días (`LINK_DIAS` en `wrangler.toml`); después se descarga un Excel nuevo.
 
+## Fotografías y Excel
+
+- Las fotos se guardan **en su calidad original**, sin recomprimir ni reducir, y sin límite de cantidad. Cada foto se sube por separado (si se corta la señal, el botón permite reintentar solo las que faltan). Cloudflare admite hasta 100 MB por foto en el plan gratuito, muy por encima de lo que produce un celular.
+- La cámara en vivo toma la foto a la resolución completa del sensor cuando el navegador lo permite (Chrome en Android); si no, se puede usar la cámara del teléfono.
+- El **Excel** se genera con formato institucional: hojas *Resumen* (indicadores y tablas), *Caracterizaciones*, *Fotografías* (con miniatura y enlace a la original), *Funcionarios* e *Información*. Incluye escudo, filtros, encabezados fijos y configuración de impresión.
+
 ## Seguridad
 
 - El formulario es abierto; solo acepta envíos desde la propia página y tiene un campo trampa contra robots. Para ver datos se necesita `ADMIN_KEY`. Las fotos solo se abren con enlaces firmados que vencen.

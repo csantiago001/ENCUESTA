@@ -3,23 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#003b73">
+<meta name="theme-color" content="#0a4a2c">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="robots" content="noindex, nofollow">
 <title>Caracterización de Zonas de Expendios - MEBUC</title>
 <script src="/dialogo.js"></script>
 
 <style>
 :root{
-    --azul:#003b73;
-    --azul2:#005ca9;
-    --azul3:#eaf3fb;
-    --gris:#667085;
-    --borde:#d9e0e7;
-    --verde:#16803c;
-    --rojo:#c62828;
-    --ambar:#b26a00;
-    --sombra:0 8px 30px rgba(0,0,0,.08);
-    --radio:12px;
+    /* Colores institucionales Policía Nacional de Colombia */
+    --verde-900:#06341f;
+    --verde-800:#0a4a2c;
+    --verde-700:#0d5c37;
+    --verde-600:#127a47;
+    --verde-100:#e6f2eb;
+    --verde-50:#f3f8f5;
+    --oro:#c8a24a;
+    --oro-claro:#fbf4df;
+    --amarillo:#fcd116; --azul-co:#003893; --rojo-co:#ce1126;   /* bandera */
+    --tinta:#14211a;
+    --gris:#5d6b64;
+    --borde:#d6e0da;
+    --fondo:#eef2ef;
+    --rojo:#b42318;
+    --ambar:#9a6700;
+    --radio:10px;
+    --sombra:0 1px 2px rgba(6,52,31,.06), 0 4px 14px rgba(6,52,31,.06);
 }
 *{ box-sizing:border-box; }
 [hidden]{ display:none !important; }
@@ -27,203 +37,212 @@ html{ -webkit-text-size-adjust:100%; }
 body{
     margin:0;
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    background:#f3f6f9;
-    color:#17202a;
+    background:var(--fondo);
+    color:var(--tinta);
     line-height:1.4;
+    font-size:15px;
 }
 
-/* ---------- Encabezado ---------- */
+/* ---------- Encabezado institucional ---------- */
 .header{
-    background:linear-gradient(135deg,var(--azul),var(--azul2));
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(120deg,var(--verde-900),var(--verde-700) 70%,var(--verde-600));
     color:#fff;
-    padding:20px 16px;
-    padding-top:max(20px, env(safe-area-inset-top));
-    box-shadow:var(--sombra);
+    padding:10px 14px;
+    padding-top:max(10px, env(safe-area-inset-top));
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
 }
-.header-container{ max-width:1050px; margin:auto; display:flex; align-items:center; gap:14px; }
+.header::after{
+    content:""; position:absolute; left:0; right:0; bottom:-4px; height:4px;
+    background:linear-gradient(90deg,var(--amarillo) 0 50%,var(--azul-co) 50% 75%,var(--rojo-co) 75% 100%);
+}
+.header-container{ max-width:880px; margin:auto; display:flex; align-items:center; gap:12px; }
 .logo{
-    flex:0 0 56px; height:56px; border-radius:50%; background:#fff;
-    display:flex; align-items:center; justify-content:center;
-    color:var(--azul); font-weight:700; font-size:14px;
+    flex:0 0 50px; width:50px; height:50px; border-radius:50%; background:#fff;
+    box-shadow:0 0 0 2px var(--oro); object-fit:contain; padding:2px;
 }
-.header h1{ margin:0; font-size:20px; }
-.header p{ margin:4px 0 0; opacity:.9; font-size:14px; }
+.titulos{ min-width:0; }
+.header h1{ margin:0; font-size:17px; font-weight:800; letter-spacing:.01em; line-height:1.2; }
+.header p{ margin:2px 0 0; font-size:12.5px; color:#cfe6d9; }
 .btn-panel{
     margin-left:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
-    background:rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.35);
-    border-radius:9px; padding:10px 14px; min-height:44px; font-size:14px; font-weight:700; text-decoration:none;
+    background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.35);
+    border-radius:8px; padding:8px 12px; min-height:40px; font-size:13.5px; font-weight:700; text-decoration:none;
 }
-.btn-panel:hover{ background:rgba(255,255,255,.26); }
-@media (max-width:520px){ .btn-panel{ padding:8px 10px; font-size:13px; } }
+.btn-panel:hover{ background:rgba(255,255,255,.22); }
 
 /* ---------- Estructura ---------- */
-.container{ max-width:1050px; margin:22px auto; padding:0 16px; }
-.card{ background:#fff; border-radius:14px; padding:22px; margin-bottom:18px; box-shadow:var(--sombra); }
-.section-title{
-    font-size:17px; font-weight:700; color:var(--azul);
-    margin:0 0 18px; border-bottom:2px solid var(--azul3); padding-bottom:10px;
+.container{ max-width:880px; margin:18px auto; padding:0 12px; }
+.card{
+    background:#fff; border:1px solid var(--borde); border-radius:12px;
+    padding:16px 18px; margin-bottom:12px; box-shadow:var(--sombra);
 }
-.field{ margin-bottom:18px; }
+.section-title{
+    display:flex; align-items:center; gap:10px;
+    font-size:14px; font-weight:800; color:var(--verde-800); text-transform:uppercase; letter-spacing:.04em;
+    margin:0 0 14px; padding-bottom:10px; border-bottom:1px solid var(--borde);
+}
+.section-title::before{
+    content:""; width:4px; height:18px; border-radius:2px; background:var(--oro); flex:0 0 4px;
+}
+.field{ margin-bottom:14px; }
 .field:last-child{ margin-bottom:0; }
-label, .label{ display:block; font-weight:700; margin-bottom:7px; font-size:14px; }
-.required{ color:#d32f2f; }
-.hint{ font-size:12px; color:var(--gris); margin-top:5px; }
+label, .label{ display:block; font-weight:700; margin-bottom:5px; font-size:13px; color:#26332c; }
+.required{ color:var(--rojo); }
+.hint{ font-size:12px; color:var(--gris); margin-top:4px; }
 
 input, textarea, select{
-    width:100%; padding:12px 13px; border:1px solid var(--borde); border-radius:9px;
+    width:100%; padding:10px 12px; border:1px solid var(--borde); border-radius:8px;
     font-size:16px; font-family:inherit; outline:none; background:#fff; color:inherit;
+    transition:border-color .12s, box-shadow .12s;
 }
-input:focus, textarea:focus, select:focus{ border-color:var(--azul2); box-shadow:0 0 0 3px rgba(0,92,169,.12); }
-input[readonly]{ background:#f5f7fa; color:#344054; }
-textarea{ min-height:96px; resize:vertical; }
-.autollenado{ background:#f1f8f3 !important; border-color:#9fd3ae !important; }
+input:focus, textarea:focus, select:focus{ border-color:var(--verde-600); box-shadow:0 0 0 3px rgba(18,122,71,.15); }
+input[readonly]{ background:var(--verde-50); color:#344a3e; }
+textarea{ min-height:76px; resize:vertical; }
+.autollenado{ background:#f0f8f3 !important; border-color:#8fc9a5 !important; }
 
-.invalido{ border-color:var(--rojo) !important; box-shadow:0 0 0 3px rgba(198,40,40,.12) !important; }
-.error-msg{ color:var(--rojo); font-size:12px; margin-top:5px; display:none; }
+.invalido{ border-color:var(--rojo) !important; box-shadow:0 0 0 3px rgba(180,35,24,.12) !important; }
+.error-msg{ color:var(--rojo); font-size:12px; margin-top:5px; display:none; font-weight:600; }
 .field.con-error .error-msg{ display:block; }
 
-.grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
 
 /* ---------- Opciones ---------- */
-.opciones{ display:flex; gap:10px; flex-wrap:wrap; }
-.opcion{ flex:1 1 120px; position:relative; margin:0; font-weight:600; }
+.opciones{ display:flex; gap:8px; flex-wrap:wrap; }
+.opcion{ flex:1 1 110px; position:relative; margin:0; font-weight:600; }
 .opcion input{ position:absolute; opacity:0; pointer-events:none; }
 .opcion span{
-    display:block; text-align:center; padding:12px; border:1px solid var(--borde);
-    border-radius:9px; cursor:pointer; user-select:none;
+    display:block; text-align:center; padding:10px; border:1px solid var(--borde);
+    border-radius:8px; cursor:pointer; user-select:none; background:#fff; font-size:14px;
 }
-.opcion input:checked + span{ background:var(--azul); border-color:var(--azul); color:#fff; }
-.opcion input:focus-visible + span{ box-shadow:0 0 0 3px rgba(0,92,169,.25); }
+.opcion input:checked + span{ background:var(--verde-700); border-color:var(--verde-700); color:#fff; }
+.opcion input:focus-visible + span{ box-shadow:0 0 0 3px rgba(18,122,71,.25); }
 
 /* ---------- GPS ---------- */
 .gps-box{
-    background:var(--azul3); border:1px solid #c9dff4; border-radius:var(--radio);
-    padding:16px; margin-bottom:18px;
+    background:var(--verde-50); border:1px solid #cfe3d7; border-radius:var(--radio);
+    padding:12px 14px; margin-bottom:14px;
 }
-.gps-row{ display:flex; gap:10px; align-items:center; margin:10px 0 4px; flex-wrap:wrap; }
-.estado{ font-size:14px; }
-.estado.ok{ color:var(--verde); font-weight:700; }
+.gps-row{ display:flex; gap:10px; align-items:center; margin:6px 0 2px; flex-wrap:wrap; }
+.estado{ font-size:13px; }
+.estado.ok{ color:var(--verde-600); font-weight:700; }
 .estado.warn{ color:var(--ambar); font-weight:700; }
 .estado.err{ color:var(--rojo); font-weight:700; }
-.coordinates{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
-.mapa-link{ font-size:13px; color:var(--azul2); }
+.coordinates{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0; }
+.mapa-link{ font-size:13px; color:var(--verde-600); font-weight:600; }
 
 /* ---------- Botones ---------- */
 button, .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
-    border:none; border-radius:9px; padding:12px 18px; font-size:14px; font-weight:700;
-    font-family:inherit; cursor:pointer; margin:0; text-decoration:none; min-height:44px;
+    border:none; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:700;
+    font-family:inherit; cursor:pointer; margin:0; text-decoration:none; min-height:42px;
+    transition:background .12s, transform .05s;
 }
-button:disabled{ opacity:.6; cursor:not-allowed; }
-.btn-primary{ background:var(--azul); color:#fff; }
-.btn-primary:hover:not(:disabled){ background:#002d59; }
-.btn-gps{ background:var(--verde); color:#fff; }
-.btn-secondary{ background:#eef2f6; color:#263238; }
-.btn-secondary:hover{ background:#e2e8ef; }
-.btn-chico{ min-height:38px; padding:8px 14px; font-size:13px; }
-
+button:active{ transform:translateY(1px); }
+button:disabled{ opacity:.55; cursor:not-allowed; }
+.btn-primary{ background:var(--verde-700); color:#fff; }
+.btn-primary:hover:not(:disabled){ background:var(--verde-800); }
+.btn-gps{ background:var(--verde-600); color:#fff; }
+.btn-gps:hover:not(:disabled){ background:var(--verde-700); }
+.btn-secondary{ background:#fff; color:var(--verde-800); border:1px solid var(--borde); }
+.btn-secondary:hover{ background:var(--verde-50); }
+.btn-chico{ min-height:34px; padding:6px 12px; font-size:13px; }
 
 /* ---------- Funcionarios ---------- */
-.lista-func{ display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+.lista-func{ display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
 .func{
-    border:1px solid var(--borde); border-radius:10px; padding:12px; background:#fafcfe;
-    display:grid; grid-template-columns:110px minmax(150px,1fr) 2fr 44px; gap:10px; align-items:end;
+    border:1px solid var(--borde); border-left:3px solid var(--verde-600); border-radius:8px;
+    padding:10px 12px; background:var(--verde-50);
+    display:grid; grid-template-columns:100px minmax(150px,1fr) 2fr 42px; gap:8px 10px; align-items:end;
 }
-.func .num{ grid-column:1 / -1; font-size:12px; font-weight:700; color:var(--azul); text-transform:uppercase; letter-spacing:.03em; margin-bottom:-4px; }
-.func label{ font-size:12px; margin-bottom:4px; }
+.func .num{ grid-column:1 / -1; font-size:11px; font-weight:800; color:var(--verde-700); text-transform:uppercase; letter-spacing:.05em; }
+.func label{ font-size:11.5px; margin-bottom:3px; color:var(--gris); }
 .func .quitar{
-    min-height:46px; padding:0; width:44px; background:#fff; color:var(--rojo);
-    border:1px solid var(--borde); font-size:18px;
+    min-height:44px; padding:0; width:42px; background:#fff; color:var(--rojo);
+    border:1px solid var(--borde); font-size:16px;
 }
 .func .quitar:hover{ background:#fdecea; }
-.func .quitar[hidden]{ display:none !important; }
-.btn-agregar{ width:100%; border:1px dashed #b9c5d1; background:#fff; color:var(--azul); }
-@media (max-width:700px){
-    .func{ grid-template-columns:84px 1fr 44px; }
-    .func .c-nombre{ grid-column:1 / -1; }
-    .func .quitar{ grid-row:2; grid-column:3; }
-}
+.btn-agregar{ width:100%; border:1px dashed #9fc4ae; background:#fff; color:var(--verde-700); }
+.btn-agregar:hover{ background:var(--verde-50); }
 
 /* ---------- Fotos ---------- */
 .photo-area{
-    border:2px dashed #b9c5d1; border-radius:var(--radio); padding:16px;
-    text-align:center; background:#fafcfe;
+    border:1px dashed #b6cbbf; border-radius:var(--radio); padding:12px;
+    text-align:center; background:var(--verde-50);
 }
-.photo-area p{ margin:0 0 12px; font-size:14px; color:var(--gris); }
-.photo-buttons{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.photo-area p{ margin:0 0 10px; font-size:13px; color:var(--gris); }
+.photo-buttons{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
 .photo-buttons input[type=file]{ display:none; }
-.contador{ font-size:12px; color:var(--gris); margin-top:10px; }
+.contador{ font-size:12px; color:var(--gris); margin-top:8px; font-weight:600; }
 .photo-preview{
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-    gap:12px; margin-top:14px;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr));
+    gap:8px; margin-top:10px;
 }
-.photo-card{ border-radius:10px; overflow:hidden; border:1px solid var(--borde); background:#fff; }
-.photo-card img{ width:100%; height:140px; object-fit:cover; display:block; }
-.photo-card .peso{ font-size:11px; color:var(--gris); padding:4px; }
+.photo-preview:empty{ display:none; }
+.photo-card{ border-radius:8px; overflow:hidden; border:1px solid var(--borde); background:#fff; text-align:left; }
+.photo-card img{ width:100%; height:110px; object-fit:cover; display:block; background:#e7ece9; }
+.photo-card .sin-vista{
+    height:110px; display:flex; align-items:center; justify-content:center; padding:8px;
+    font-size:11px; color:var(--gris); text-align:center; background:#e7ece9;
+}
+.photo-card .peso{ font-size:11px; color:var(--gris); padding:5px 7px; }
 .photo-card button{
     width:100%; border-radius:0; background:#fff; color:var(--rojo);
-    border-top:1px solid var(--borde); min-height:38px;
+    border-top:1px solid var(--borde); min-height:34px; font-size:12.5px;
 }
 
 /* ---------- Cámara en vivo ---------- */
-.camara{
-    position:fixed; inset:0; z-index:100; background:#000; color:#fff;
-    display:flex; flex-direction:column;
-}
+.camara{ position:fixed; inset:0; z-index:100; background:#000; color:#fff; display:flex; flex-direction:column; }
 .camara[hidden]{ display:none; }
 .camara-top{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
     padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top));
-    font-size:14px; font-weight:700; background:rgba(0,0,0,.6);
+    font-size:14px; font-weight:700; background:rgba(6,52,31,.85);
 }
 .camara-visor{ position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; }
 .camara video{ width:100%; height:100%; object-fit:contain; background:#000; }
 .camara-flash{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .15s; }
 .camara-flash.on{ opacity:.8; transition:none; }
-.camara-error{
-    position:absolute; left:16px; right:16px; top:50%; transform:translateY(-50%);
-    text-align:center; font-size:15px; display:none;
-}
+.camara-error{ position:absolute; left:16px; right:16px; top:50%; transform:translateY(-50%); text-align:center; font-size:15px; display:none; }
 .camara-error.visible{ display:block; }
 .camara-error button{ margin-top:14px; }
 .camara-acciones{
     display:flex; align-items:center; justify-content:space-around; gap:10px;
     padding:18px 16px; padding-bottom:max(18px, env(safe-area-inset-bottom));
-    background:rgba(0,0,0,.6);
+    background:rgba(6,52,31,.85);
 }
-.cam-btn{ background:rgba(255,255,255,.15); color:#fff; min-width:96px; }
+.cam-btn{ background:rgba(255,255,255,.15); color:#fff; min-width:90px; }
 .cam-disparo{
     width:74px; height:74px; border-radius:50%; padding:0;
-    background:#fff; border:5px solid rgba(255,255,255,.45); background-clip:padding-box;
+    background:#fff; border:5px solid var(--oro); background-clip:padding-box;
 }
 .cam-disparo:active{ transform:scale(.94); }
-.cam-miniatura{
-    width:48px; height:48px; border-radius:8px; object-fit:cover; border:2px solid #fff;
-    visibility:hidden;
-}
+.cam-miniatura{ width:48px; height:48px; border-radius:8px; object-fit:cover; border:2px solid #fff; visibility:hidden; }
 .cam-miniatura.visible{ visibility:visible; }
 
 /* ---------- Avisos ---------- */
 .notice{
-    background:#fff8e1; border:1px solid #ffe082; border-radius:10px;
-    padding:14px; font-size:13px; margin-bottom:18px;
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--oro-claro); border:1px solid #ead9a6; border-left:4px solid var(--oro);
+    border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:12px; color:#3d3418;
 }
+.notice strong{ color:#2b2410; }
 .borrador{
-    display:none; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px;
-    padding:12px 14px; font-size:13px; margin-bottom:18px;
+    display:none; background:#e8f5ec; border:1px solid #a9d8b8; border-radius:10px;
+    padding:10px 12px; font-size:13px; margin-bottom:12px;
     align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
 }
 .borrador.visible{ display:flex; }
 
 /* ---------- Envío ---------- */
-.acciones{ display:flex; flex-direction:column; gap:10px; }
-.submit{ width:100%; font-size:16px; padding:16px; }
-.status{ margin:6px 0 0; font-size:14px; min-height:20px; color:var(--gris); }
-.status.ok{ color:var(--verde); font-weight:700; }
+.acciones{ display:flex; flex-direction:column; gap:8px; }
+.submit{ width:100%; font-size:15px; padding:14px; letter-spacing:.03em; min-height:50px; }
+.status{ margin:8px 0 0; font-size:13.5px; min-height:18px; color:var(--gris); }
+.status.ok{ color:var(--verde-600); font-weight:700; }
 .status.err{ color:var(--rojo); font-weight:700; }
-.progreso{ height:6px; background:#e4e9ef; border-radius:3px; overflow:hidden; display:none; }
+.progreso{ height:6px; background:#dfe7e2; border-radius:3px; overflow:hidden; display:none; }
 .progreso.visible{ display:block; }
-.progreso div{ height:100%; width:0; background:var(--azul2); transition:width .2s; }
+.progreso div{ height:100%; width:0; background:linear-gradient(90deg,var(--verde-600),var(--oro)); transition:width .2s; }
 .spinner{
     width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
     border-radius:50%; animation:giro .8s linear infinite; display:none;
@@ -231,17 +250,27 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .cargando .spinner{ display:inline-block; }
 @keyframes giro{ to{ transform:rotate(360deg); } }
 
+/* ---------- Pie ---------- */
 .footer{
-    text-align:center; color:#7a8691; font-size:12px; padding:20px;
-    padding-bottom:max(20px, env(safe-area-inset-bottom));
+    text-align:center; color:var(--gris); font-size:12px; padding:18px 12px;
+    padding-bottom:max(18px, env(safe-area-inset-bottom));
+    border-top:1px solid var(--borde); margin-top:6px; background:#fff;
 }
+.footer strong{ color:var(--verde-800); }
+.footer .creditos{ margin-top:4px; font-size:11.5px; letter-spacing:.02em; }
+.footer .creditos b{ color:var(--verde-700); }
 
 @media (max-width:700px){
     .grid, .coordinates{ grid-template-columns:1fr; }
-    .card{ padding:18px; }
-    .header h1{ font-size:18px; }
+    .card{ padding:14px; }
+    .header h1{ font-size:15px; }
+    .header p{ font-size:11.5px; }
+    .logo{ flex-basis:44px; width:44px; height:44px; }
     .gps-row > button{ width:100%; }
     .photo-buttons .btn{ flex:1 1 100%; }
+    .func{ grid-template-columns:84px 1fr 42px; }
+    .func .c-nombre{ grid-column:1 / -1; }
+    .func .quitar{ grid-row:2; grid-column:3; }
 }
 </style>
 </head>
@@ -250,10 +279,10 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 
 <header class="header">
     <div class="header-container">
-        <div class="logo" aria-hidden="true">MEBUC</div>
-        <div>
+        <img class="logo" src="/logo.png" alt="Escudo de la Policía Nacional de Colombia" width="50" height="50">
+        <div class="titulos">
             <h1>Caracterización de Zonas de Expendios</h1>
-            <p>Policía Nacional de Colombia · MEBUC</p>
+            <p>Policía Metropolitana de Bucaramanga · MEBUC</p>
         </div>
         <a class="btn-panel" href="/panel" title="Ver el avance de la encuesta (requiere clave)">📊 <span>Panel</span></a>
     </div>
@@ -262,9 +291,9 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 <main class="container">
 
 <div class="notice">
-    <strong>Registro de caracterización</strong><br>
-    Diligencie la información correspondiente al punto identificado. Con el botón GPS se capturan
-    las coordenadas y se sugiere el barrio y la dirección; verifíquelos antes de guardar.
+    <span aria-hidden="true">ℹ️</span>
+    <div><strong>Registro de caracterización.</strong> Diligencie la información del punto identificado.
+    El botón GPS captura las coordenadas y sugiere barrio y dirección; verifíquelos antes de guardar.</div>
 </div>
 
 <div id="avisoBorrador" class="borrador" role="status">
@@ -394,7 +423,7 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
     <section class="card">
         <h2 class="section-title"></h2>
         <div class="photo-area">
-            <p>Toque “Abrir cámara” para tomar las fotografías en el momento, o seleccione existentes.</p>
+            <p>Tome las fotografías con la cámara o selecciónelas de la galería. Se envían en su calidad original, sin límite.</p>
             <div class="photo-buttons">
                 <button type="button" class="btn btn-primary" data-accion="camara">📷 Abrir cámara</button>
                 <label class="btn btn-secondary">🖼️ Seleccionar de galería
@@ -429,7 +458,10 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 </form>
 </main>
 
-<footer class="footer">Policía Nacional de Colombia · MEBUC</footer>
+<footer class="footer">
+    <div><strong>Policía Nacional de Colombia</strong> · Policía Metropolitana de Bucaramanga</div>
+    <div class="creditos">Desarrollado por <b>ING. Santiago Escorcia</b></div>
+</footer>
 
 <!-- Cámara en vivo -->
 <div id="camara" class="camara" hidden role="dialog" aria-modal="true" aria-labelledby="camTitulo">
@@ -463,9 +495,7 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 ============================ */
 const CONFIG = {
     API_URL: "/api/caracterizaciones",   // mismo dominio del Worker
-    MAX_FOTOS_POR_TIPO: 6,
-    MAX_LADO_PX: 1600,
-    CALIDAD_JPEG: 0.8,
+    MINI_LADO_PX: 480,                   // miniatura SOLO para vista previa, panel y Excel
     PRECISION_ACEPTABLE_M: 30,
     CLAVE_BORRADOR: "mebuc_caracterizacion_borrador"
 };
@@ -481,10 +511,12 @@ const MUNICIPIOS = ["Bucaramanga","Floridablanca","Girón","Piedecuesta","Lebrij
 const $ = id => document.getElementById(id);
 const form = $("encuestaForm");
 
-const fotos = {};            // fotos[tipo] = [{ blob, url, nombre }]
+/* fotos[tipo] = [{ archivo: Blob ORIGINAL (sin tocar), mini: Blob|null, url, nombre, subida: { original, mini } }] */
+const fotos = {};
 let precisionGPS = null;
 let direccionGPS = "";       // lo que sugirió el GPS (queda como respaldo)
 let idRegistro = null;       // se conserva entre reintentos para no duplicar
+let envio = null;            // { id, token, exp } cuando los datos ya se guardaron
 
 /* ============================
    UTILIDADES
@@ -499,6 +531,11 @@ function fetchConTiempo(url, opciones = {}, ms = 10000){
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
     return fetch(url, { ...opciones, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
+function tamanoLegible(bytes){
+    if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1).replace(".", ",") + " MB";
+    return Math.max(1, Math.round(bytes / 1024)) + " KB";
 }
 
 /* ============================
@@ -525,65 +562,57 @@ function crearSeccionesFotos(){
     });
 }
 
-function cupo(tipo){ return CONFIG.MAX_FOTOS_POR_TIPO - fotos[tipo].length; }
+/* Miniatura liviana para la vista previa, el panel y el Excel. La foto ORIGINAL nunca se modifica. */
+async function crearMini(blob){
+    try{
+        let fuente, ancho, alto;
+        if (window.createImageBitmap){
+            fuente = await createImageBitmap(blob, { imageOrientation: "from-image" });
+            ancho = fuente.width; alto = fuente.height;
+        } else {
+            fuente = await new Promise((ok, mal) => {
+                const img = new Image(), u = URL.createObjectURL(blob);
+                img.onload = () => { URL.revokeObjectURL(u); ok(img); };
+                img.onerror = () => { URL.revokeObjectURL(u); mal(new Error("no decodifica")); };
+                img.src = u;
+            });
+            ancho = fuente.naturalWidth; alto = fuente.naturalHeight;
+        }
+        const escala = Math.min(1, CONFIG.MINI_LADO_PX / Math.max(ancho, alto));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(ancho * escala));
+        c.height = Math.max(1, Math.round(alto * escala));
+        c.getContext("2d").drawImage(fuente, 0, 0, c.width, c.height);
+        if (fuente.close) fuente.close();
+        return await new Promise(ok => c.toBlob(b => ok(b), "image/jpeg", 0.82));
+    }catch(err){
+        console.warn("Sin miniatura (formato no visible en este navegador):", err);
+        return null;   // p. ej. HEIC en Android: la original se sube igual
+    }
+}
 
-function agregarBlob(tipo, blob){
-    if (cupo(tipo) <= 0) return false;
+async function agregarFoto(tipo, archivo, origen){
+    const mini = await crearMini(archivo);
+    const ext = (archivo.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
     fotos[tipo].push({
-        blob,
-        url: URL.createObjectURL(blob),
-        nombre: `${tipo}_${fotos[tipo].length + 1}.jpg`
+        archivo,
+        mini,
+        url: mini ? URL.createObjectURL(mini) : null,
+        nombre: archivo.name || `${tipo}_${fotos[tipo].length + 1}.${ext}`,
+        origen,
+        subida: { original: false, mini: false }
     });
     renderFotos(tipo);
-    return true;
+    return fotos[tipo][fotos[tipo].length - 1];
 }
 
 async function agregarArchivos(input, tipo){
     const archivos = Array.from(input.files || []);
     input.value = "";
-    if (!archivos.length) return;
-
-    const disponibles = cupo(tipo);
-    if (disponibles <= 0){
-        mostrarEstado(`Máximo ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías por sección.`, "err");
-        return;
+    for (const archivo of archivos){
+        if (archivo.type && !archivo.type.startsWith("image/")) continue;
+        await agregarFoto(tipo, archivo, input.dataset.origen);
     }
-    if (archivos.length > disponibles){
-        mostrarEstado(`Solo se agregaron ${disponibles} fotografía(s); el máximo es ${CONFIG.MAX_FOTOS_POR_TIPO}.`, "err");
-    }
-    for (const archivo of archivos.slice(0, disponibles)){
-        if (!archivo.type.startsWith("image/")) continue;
-        try{
-            agregarBlob(tipo, await comprimirImagen(archivo));
-        }catch(err){
-            console.error(err);
-            mostrarEstado("No se pudo procesar una de las imágenes.", "err");
-        }
-    }
-}
-
-function dibujarEnJpeg(fuente, anchoOrig, altoOrig){
-    const escala = Math.min(1, CONFIG.MAX_LADO_PX / Math.max(anchoOrig, altoOrig));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(anchoOrig * escala);
-    canvas.height = Math.round(altoOrig * escala);
-    canvas.getContext("2d").drawImage(fuente, 0, 0, canvas.width, canvas.height);
-    return new Promise((resolve, reject) =>
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error("toBlob falló")), "image/jpeg", CONFIG.CALIDAD_JPEG)
-    );
-}
-
-function comprimirImagen(archivo){
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        const urlTmp = URL.createObjectURL(archivo);
-        img.onload = () => {
-            URL.revokeObjectURL(urlTmp);
-            dibujarEnJpeg(img, img.naturalWidth, img.naturalHeight).then(resolve, reject);
-        };
-        img.onerror = () => { URL.revokeObjectURL(urlTmp); reject(new Error("Imagen no válida")); };
-        img.src = urlTmp;
-    });
 }
 
 function renderFotos(tipo){
@@ -594,43 +623,54 @@ function renderFotos(tipo){
     fotos[tipo].forEach((foto, index) => {
         const card = document.createElement("div");
         card.className = "photo-card";
-        const img = document.createElement("img");
-        img.src = foto.url;
-        img.alt = `Fotografía ${index + 1}`;
+        if (foto.url){
+            const img = document.createElement("img");
+            img.src = foto.url;
+            img.alt = `Fotografía ${index + 1}`;
+            card.appendChild(img);
+        } else {
+            const ph = document.createElement("div");
+            ph.className = "sin-vista";
+            ph.textContent = "📷 Vista previa no disponible (se enviará la foto original)";
+            card.appendChild(ph);
+        }
         const peso = document.createElement("div");
         peso.className = "peso";
-        peso.textContent = `${(foto.blob.size / 1024).toFixed(0)} KB`;
+        peso.textContent = `Original · ${tamanoLegible(foto.archivo.size)}${foto.subida.original ? " · ✓ enviada" : ""}`;
         const btn = document.createElement("button");
         btn.type = "button";
         btn.textContent = "Eliminar";
+        btn.disabled = foto.subida.original;
         btn.addEventListener("click", () => eliminarFoto(tipo, index));
-        card.append(img, peso, btn);
+        card.append(peso, btn);
         contenedor.appendChild(card);
     });
 
     const n = fotos[tipo].length;
-    seccion.querySelector(".contador").textContent = `${n} de ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías`;
-    seccion.querySelectorAll(".photo-buttons .btn").forEach(b => b.style.opacity = n >= CONFIG.MAX_FOTOS_POR_TIPO ? ".5" : "");
+    const total = fotos[tipo].reduce((t, f) => t + f.archivo.size, 0);
+    seccion.querySelector(".contador").textContent = n
+        ? `${n} ${n === 1 ? "fotografía" : "fotografías"} · ${tamanoLegible(total)} en calidad original`
+        : "Sin fotografías";
 }
 
 function eliminarFoto(tipo, index){
     const [foto] = fotos[tipo].splice(index, 1);
-    if (foto) URL.revokeObjectURL(foto.url);
+    if (foto && foto.url) URL.revokeObjectURL(foto.url);
     renderFotos(tipo);
 }
 
 function limpiarFotos(){
     Object.keys(fotos).forEach(tipo => {
-        fotos[tipo].forEach(f => URL.revokeObjectURL(f.url));
+        fotos[tipo].forEach(f => f.url && URL.revokeObjectURL(f.url));
         fotos[tipo] = [];
         renderFotos(tipo);
     });
 }
 
 /* ============================
-   CÁMARA EN VIVO
+   CÁMARA EN VIVO (máxima resolución del dispositivo)
 ============================ */
-const cam = { stream: null, tipo: null, facing: "environment", miniUrl: null };
+const cam = { stream: null, tipo: null, facing: "environment", capturador: null, ocupada: false };
 
 function camaraDisponible(){
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext);
@@ -642,10 +682,6 @@ function usarCamaraSistema(tipo){
 }
 
 async function abrirCamara(tipo){
-    if (cupo(tipo) <= 0){
-        mostrarEstado(`Máximo ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías por sección.`, "err");
-        return;
-    }
     if (!camaraDisponible()){
         usarCamaraSistema(tipo);
         return;
@@ -666,9 +702,11 @@ async function iniciarStream(){
     $("camDisparar").disabled = true;
     try{
         cam.stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: cam.facing }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            video: { facingMode: { ideal: cam.facing }, width: { ideal: 4096 }, height: { ideal: 4096 } },
             audio: false
         });
+        const pista = cam.stream.getVideoTracks()[0];
+        cam.capturador = ("ImageCapture" in window) ? new ImageCapture(pista) : null;
         const video = $("camVideo");
         video.srcObject = cam.stream;
         await video.play().catch(() => {});
@@ -691,6 +729,7 @@ function detenerStream(){
         cam.stream.getTracks().forEach(t => t.stop());
         cam.stream = null;
     }
+    cam.capturador = null;
     $("camVideo").srcObject = null;
 }
 
@@ -698,17 +737,37 @@ function cerrarCamara(){
     detenerStream();
     $("camara").hidden = true;
     document.body.style.overflow = "";
-    if (cam.miniUrl){ cam.miniUrl = null; }
 }
 
 function actualizarConteoCamara(){
     if (!cam.tipo) return;
-    $("camConteo").textContent = `${fotos[cam.tipo].length} / ${CONFIG.MAX_FOTOS_POR_TIPO}`;
+    const n = fotos[cam.tipo].length;
+    $("camConteo").textContent = `${n} ${n === 1 ? "foto" : "fotos"}`;
+}
+
+/* Foto a la resolución completa del sensor (ImageCapture) o, si no existe, al máximo del video en calidad 100 % */
+async function capturarFoto(){
+    if (cam.capturador){
+        try{
+            const cap = await cam.capturador.getPhotoCapabilities().catch(() => null);
+            const ajustes = cap && cap.imageWidth && cap.imageHeight
+                ? { imageWidth: cap.imageWidth.max, imageHeight: cap.imageHeight.max } : {};
+            const blob = await cam.capturador.takePhoto(ajustes);
+            if (blob && blob.size) return blob;
+        }catch(err){ console.warn("takePhoto no disponible, se usa el video:", err); }
+    }
+    const video = $("camVideo");
+    const c = document.createElement("canvas");
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext("2d").drawImage(video, 0, 0);
+    return await new Promise((ok, mal) => c.toBlob(b => b ? ok(b) : mal(new Error("toBlob falló")), "image/jpeg", 1));
 }
 
 async function disparar(){
     const video = $("camVideo");
-    if (!video.videoWidth || cupo(cam.tipo) <= 0) return;
+    if (!video.videoWidth || cam.ocupada) return;
+    cam.ocupada = true;
+    $("camDisparar").disabled = true;
 
     const flash = $("camFlash");
     flash.classList.add("on");
@@ -716,18 +775,17 @@ async function disparar(){
     if (navigator.vibrate) navigator.vibrate(30);
 
     try{
-        const blob = await dibujarEnJpeg(video, video.videoWidth, video.videoHeight);
-        agregarBlob(cam.tipo, blob);
-        const ultima = fotos[cam.tipo][fotos[cam.tipo].length - 1];
-        $("camMini").src = ultima.url;
-        $("camMini").classList.add("visible");
+        const blob = await capturarFoto();
+        const archivo = new File([blob], `${cam.tipo}_${Date.now()}.${blob.type === "image/png" ? "png" : "jpg"}`, { type: blob.type || "image/jpeg" });
+        const foto = await agregarFoto(cam.tipo, archivo, "camara");
+        if (foto.url){ $("camMini").src = foto.url; $("camMini").classList.add("visible"); }
         actualizarConteoCamara();
-        if (cupo(cam.tipo) <= 0){
-            setTimeout(cerrarCamara, 400);
-            mostrarEstado(`Se completaron las ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías de la sección.`);
-        }
     }catch(err){
         console.error(err);
+        avisar("No se pudo tomar la fotografía. Intente de nuevo o use la cámara del teléfono.", { titulo: "Cámara", tipo: "aviso" });
+    }finally{
+        cam.ocupada = false;
+        $("camDisparar").disabled = !cam.stream;
     }
 }
 
@@ -1130,36 +1188,74 @@ function recolectarDatos(){
     };
 }
 
-function construirFormData(datos){
-    const fd = new FormData();
-    fd.append("datos", JSON.stringify(datos));
-    Object.entries(fotos).forEach(([tipo, lista]) => {
-        lista.forEach(f => fd.append(`fotos_${tipo}`, f.blob, f.nombre));
-    });
-    return fd;
-}
-
-function enviar(fd){
+/* Petición con progreso de subida */
+function peticion(metodo, url, cuerpo, cabeceras = {}, alProgresar = null){
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", CONFIG.API_URL);
-        xhr.timeout = 180000;
-        xhr.upload.onprogress = e => {
-            if (!e.lengthComputable) return;
-            const pct = Math.round(e.loaded / e.total * 100);
-            $("progreso").firstElementChild.style.width = pct + "%";
-            mostrarEstado(`Enviando información... ${pct}%`);
-        };
+        xhr.open(metodo, url);
+        Object.entries(cabeceras).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+        xhr.timeout = 0;   // sin límite: las fotos originales pueden ser grandes
+        if (alProgresar) xhr.upload.onprogress = e => { if (e.lengthComputable) alProgresar(e.loaded); };
         xhr.onload = () => {
-            let cuerpo = {};
-            try{ cuerpo = JSON.parse(xhr.responseText); }catch(_){}
-            if (xhr.status >= 200 && xhr.status < 300) resolve(cuerpo);
-            else reject(Object.assign(new Error(cuerpo.error || "HTTP " + xhr.status), { status: xhr.status }));
+            let r = {};
+            try{ r = JSON.parse(xhr.responseText); }catch(_){}
+            if (xhr.status >= 200 && xhr.status < 300) resolve(r);
+            else reject(Object.assign(new Error(r.error || "HTTP " + xhr.status), { status: xhr.status }));
         };
         xhr.onerror = () => reject(Object.assign(new Error("red"), { status: 0 }));
-        xhr.ontimeout = () => reject(Object.assign(new Error("tiempo"), { status: 0 }));
-        xhr.send(fd);
+        xhr.send(cuerpo);
     });
+}
+
+async function guardarDatos(datos){
+    const r = await peticion("POST", CONFIG.API_URL, JSON.stringify(datos), { "Content-Type": "application/json" });
+    envio = { id: r.id, token: r.subida.token, exp: r.subida.exp };
+}
+
+/* Sube cada foto ORIGINAL (tal cual) y luego su miniatura. Se puede reanudar si se corta la conexión. */
+async function subirFotos(datos){
+    const pendientes = [];
+    TIPOS_FOTO.forEach(({ id: tipo }) => fotos[tipo].forEach((f, i) => {
+        if (!f.subida.original || (f.mini && !f.subida.mini)) pendientes.push({ tipo, orden: i + 1, f });
+    }));
+    const total = pendientes.reduce((t, p) => t + (p.f.subida.original ? 0 : p.f.archivo.size) + (p.f.mini ? p.f.mini.size : 0), 0) || 1;
+    let enviados = 0;
+    const barra = $("progreso").firstElementChild;
+    const avance = extra => {
+        const pct = Math.min(100, Math.round((enviados + extra) / total * 100));
+        barra.style.width = pct + "%";
+        mostrarEstado(`Subiendo fotografías en calidad original... ${pct}%`);
+    };
+
+    for (let n = 0; n < pendientes.length; n++){
+        const { tipo, orden, f } = pendientes[n];
+        const base = `${CONFIG.API_URL}/${encodeURIComponent(envio.id)}/fotos/${tipo}/${orden}`;
+        const permiso = () => ({ "X-Token": envio.token, "X-Exp": String(envio.exp) });
+        const intentar = async (url, blob, tipoContenido) => {
+            try{
+                return await peticion("PUT", url, blob, { ...permiso(), "Content-Type": tipoContenido }, avance);
+            }catch(err){
+                if (err.status === 403){ await guardarDatos(datos); return await peticion("PUT", url, blob, { ...permiso(), "Content-Type": tipoContenido }, avance); }
+                throw err;
+            }
+        };
+        if (!f.subida.original){
+            await intentar(base, f.archivo, f.archivo.type || "image/jpeg");
+            f.subida.original = true;
+            enviados += f.archivo.size;
+        }
+        if (f.mini && !f.subida.mini){
+            await intentar(base + "?mini=1", f.mini, "image/jpeg");
+            f.subida.mini = true;
+            enviados += f.mini.size;
+        }
+        avance(0);
+        renderFotos(tipo);
+    }
+}
+
+function fotosPendientes(){
+    return Object.values(fotos).flat().filter(f => !f.subida.original).length;
 }
 
 function mostrarEstado(texto, clase = ""){
@@ -1172,7 +1268,8 @@ function setCargando(activo){
     const btn = $("btnGuardar");
     btn.disabled = activo;
     btn.classList.toggle("cargando", activo);
-    btn.querySelector(".texto").textContent = activo ? "GUARDANDO..." : "GUARDAR CARACTERIZACIÓN";
+    btn.querySelector(".texto").textContent = activo ? "GUARDANDO..."
+        : envio ? "REINTENTAR ENVÍO DE FOTOGRAFÍAS" : "GUARDAR CARACTERIZACIÓN";
     $("progreso").classList.toggle("visible", activo);
     if (!activo) $("progreso").firstElementChild.style.width = "0";
 }
@@ -1188,7 +1285,7 @@ form.addEventListener("submit", async e => {
         mostrarEstado("Revise los campos marcados en rojo.", "err");
         return;
     }
-    if (fotos.punto.length === 0 &&
+    if (!envio && fotos.punto.length === 0 &&
         !(await confirmar("No ha agregado fotografías del punto de expendio. ¿Desea guardar de todas formas?", {
             titulo: "Falta la foto del punto", tipo: "aviso", aceptar: "Guardar sin foto", cancelar: "Tomar foto"
         }))){
@@ -1199,20 +1296,25 @@ form.addEventListener("submit", async e => {
     const datos = recolectarDatos();
 
     setCargando(true);
-    mostrarEstado("Enviando información...");
+    mostrarEstado("Guardando información...");
 
     try{
-        await enviar(construirFormData(datos));
+        if (!envio) await guardarDatos(datos);
+        await subirFotos(datos);
+        envio = null;
         mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}). Los funcionarios se conservaron para el siguiente registro.`, "ok");
         reiniciarFormulario(true);
     }catch(err){
         console.error(err);
-        if (err.status === 400 || err.status === 413){
+        const faltan = fotosPendientes();
+        if (envio){
+            mostrarEstado(`⚠ La información quedó guardada, pero faltan ${faltan} fotografía(s) por subir. Toque “REINTENTAR ENVÍO DE FOTOGRAFÍAS” cuando tenga señal.`, "err");
+        } else if (err.status === 400){
             mostrarEstado("✗ " + err.message, "err");
         } else {
             mostrarEstado(
                 navigator.onLine
-                    ? "✗ Error al guardar. Intente de nuevo; la información no se ha perdido."
+                    ? "✗ Error al guardar: " + err.message + ". Intente de nuevo; la información no se ha perdido."
                     : "✗ Sin conexión. La información sigue en el formulario; intente cuando tenga señal.",
                 "err");
         }
@@ -1229,6 +1331,7 @@ function reiniciarFormulario(conservarFuncionarios = false){
     precisionGPS = null;
     direccionGPS = "";
     idRegistro = null;
+    envio = null;
     actualizarCoordenadas();
     setEstado($("gpsEstado"), "Ubicación no capturada");
     setEstado($("dirEstado"), "Puede escribir el barrio y la dirección o llenarlos con el botón GPS.");

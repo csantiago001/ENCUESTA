@@ -2,11 +2,14 @@
  * Worker de Caracterización de Zonas de Expendios - MEBUC
  *
  * Rutas:
- *   POST   /api/caracterizaciones   guarda un registro + fotos   (abierto, sin código)
- *   GET    /api/verificar           comprueba la clave del panel (Authorization: Bearer ADMIN_KEY)
- *   GET    /api/registros           lista registros con enlaces firmados a las fotos (admin)
- *   DELETE /api/registros/:id       elimina un registro y sus fotos (admin)
- *   GET    /api/fotos/<clave>?exp=&sig=[&dl=1]   descarga una foto con enlace firmado
+ *   POST   /api/caracterizaciones                       guarda los datos de un registro (JSON, abierto)
+ *                                                        y devuelve un permiso temporal para subir sus fotos
+ *   PUT    /api/caracterizaciones/:id/fotos/:tipo/:n    sube UNA foto original (sin límite de calidad);
+ *                                                        con ?mini=1 sube su miniatura para el panel y el Excel
+ *   GET    /api/verificar                               comprueba la clave del panel (Authorization: Bearer ADMIN_KEY)
+ *   GET    /api/registros                               lista registros con enlaces firmados a las fotos (admin)
+ *   DELETE /api/registros/:id                           elimina un registro y sus fotos (admin)
+ *   GET    /api/fotos/<clave>?exp=&sig=[&dl=1]          descarga una foto con enlace firmado
  *   Cualquier otra ruta se sirve desde /public (formulario y panel).
  */
 
@@ -23,9 +26,8 @@ const GRADOS = {
     AG: "Agente", AUX: "Auxiliar de Policía", NU: "Personal no uniformado"
 };
 const MAX_FUNCIONARIOS = 10;
-const MAX_FOTOS_TIPO = 6;
-const MAX_BYTES_FOTO = 8 * 1024 * 1024;
-const EXTENSIONES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const HORAS_PERMISO_SUBIDA = 72;
+const EXT_CONOCIDAS = { jpeg: "jpg", jpg: "jpg", png: "png", webp: "webp", heic: "heic", heif: "heif", gif: "gif", avif: "avif", tiff: "tif", bmp: "bmp" };
 
 export default {
     async fetch(request, env) {
@@ -37,7 +39,7 @@ export default {
             return await enrutar(request, env, url);
         } catch (err) {
             console.error(err);
-            return json({ error: "Error interno del servidor" }, 500);
+            return json({ error: "Error interno del servidor: " + (err && err.message ? err.message : "desconocido") }, 500);
         }
     }
 };
@@ -48,7 +50,8 @@ async function asegurarEsquema(env) {
     if (esquemaListo) return;
     for (const sql of [
         "ALTER TABLE registros ADD COLUMN zap TEXT",
-        "ALTER TABLE registros ADD COLUMN funcionarios_json TEXT"
+        "ALTER TABLE registros ADD COLUMN funcionarios_json TEXT",
+        "ALTER TABLE fotos ADD COLUMN mini_key TEXT"
     ]) {
         try {
             await env.DB.prepare(sql).run();
@@ -61,10 +64,16 @@ async function asegurarEsquema(env) {
 
 async function enrutar(request, env, url) {
     const { pathname } = url;
-    if (pathname !== "/api/fotos" && !pathname.startsWith("/api/fotos/")) await asegurarEsquema(env);
     const metodo = request.method;
 
+    if (pathname.startsWith("/api/fotos/") && metodo === "GET") return servirFoto(env, url);
+
+    await asegurarEsquema(env);
+
     if (pathname === "/api/caracterizaciones" && metodo === "POST") return crearRegistro(request, env, url);
+
+    const subida = pathname.match(/^\/api\/caracterizaciones\/([A-Za-z0-9-]{8,64})\/fotos\/(actor|marquilla|punto)\/(\d{1,3})$/);
+    if (subida && metodo === "PUT") return subirFoto(request, env, url, subida[1], subida[2], Number(subida[3]));
 
     if (pathname === "/api/verificar" && metodo === "GET") {
         const fallo = verificarAdmin(request, env);
@@ -82,13 +91,11 @@ async function enrutar(request, env, url) {
         return fallo || eliminarRegistro(env, borrar[1]);
     }
 
-    if (pathname.startsWith("/api/fotos/") && metodo === "GET") return servirFoto(env, url);
-
     return json({ error: "Ruta no encontrada" }, 404);
 }
 
 /* ============================
-   AUTENTICACIÓN
+   AUTENTICACIÓN Y FIRMAS
 ============================ */
 const enc = new TextEncoder();
 
@@ -107,13 +114,9 @@ function verificarAdmin(request, env) {
     return null;
 }
 
-/* ============================
-   ENLACES FIRMADOS PARA FOTOS
-============================ */
 let claveHmacCache = null;
-
 async function claveHmac(env) {
-    if (!env.SIGNING_SECRET) throw new Error("Falta configurar SIGNING_SECRET");
+    if (!env.SIGNING_SECRET) throw new Error("Falta configurar SIGNING_SECRET en el servidor");
     if (claveHmacCache && claveHmacCache.secreto === env.SIGNING_SECRET) return claveHmacCache.clave;
     const clave = await crypto.subtle.importKey(
         "raw", enc.encode(env.SIGNING_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
@@ -122,14 +125,22 @@ async function claveHmac(env) {
     return clave;
 }
 
-async function firmar(env, r2Key, exp) {
-    const firma = await crypto.subtle.sign("HMAC", await claveHmac(env), enc.encode(`${r2Key}:${exp}`));
+async function firmar(env, contenido) {
+    const firma = await crypto.subtle.sign("HMAC", await claveHmac(env), enc.encode(contenido));
     return btoa(String.fromCharCode(...new Uint8Array(firma)))
         .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+const firmaFoto = (env, r2Key, exp) => firmar(env, `${r2Key}:${exp}`);
+const firmaSubida = (env, id, exp) => firmar(env, `subir:${id}:${exp}`);
+
+async function permisoSubida(env, id) {
+    const exp = Math.floor(Date.now() / 1000) + HORAS_PERMISO_SUBIDA * 3600;
+    return { exp, token: await firmaSubida(env, id, exp) };
+}
+
 /* ============================
-   CREAR REGISTRO
+   CREAR REGISTRO (solo datos)
 ============================ */
 function texto(v, max = 2000) {
     return typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -138,19 +149,14 @@ function texto(v, max = 2000) {
 async function crearRegistro(request, env, url) {
     // El formulario es abierto (sin código). Solo se aceptan envíos desde la propia página.
     const origen = request.headers.get("Origin");
-    if (origen && origen !== url.origin) {
-        return json({ error: "Origen no permitido" }, 403);
-    }
+    if (origen && origen !== url.origin) return json({ error: "Origen no permitido" }, 403);
 
-    const tipoContenido = request.headers.get("Content-Type") || "";
-    if (!tipoContenido.includes("multipart/form-data")) {
-        return json({ error: "Formato de envío no válido" }, 415);
-    }
-
-    const fd = await request.formData();
     let d;
     try {
-        d = JSON.parse(fd.get("datos"));
+        const tipo = request.headers.get("Content-Type") || "";
+        if (tipo.includes("application/json")) d = await request.json();
+        else if (tipo.includes("multipart/form-data")) d = JSON.parse((await request.formData()).get("datos"));
+        else return json({ error: "Formato de envío no válido" }, 415);
     } catch {
         return json({ error: "Datos del formulario no válidos" }, 400);
     }
@@ -209,59 +215,76 @@ async function crearRegistro(request, env, url) {
 
     // Si el registro ya existe (reintento tras corte de red), no se duplica
     const existe = await env.DB.prepare("SELECT id FROM registros WHERE id = ?").bind(registro.id).first();
-    if (existe) return json({ ok: true, id: registro.id, duplicado: true });
+    if (!existe) {
+        await env.DB.prepare(`INSERT INTO registros
+            (id, fecha_registro, recibido_en, municipio, barrio, direccion, direccion_gps,
+             latitud, longitud, precision_m, coordenadas, tipo_expendio, actor, sustancia,
+             venezolanos, marquillas, funcionarios, zap, funcionarios_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
+            registro.id, registro.fecha_registro, registro.recibido_en, registro.municipio,
+            registro.barrio, registro.direccion, registro.direccion_gps,
+            registro.latitud, registro.longitud, registro.precision_m, registro.coordenadas,
+            registro.tipo_expendio, registro.actor, registro.sustancia, registro.venezolanos,
+            registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json
+        ).run();
+    }
 
-    // Validar fotos
-    const fotos = [];
-    for (const tipo of TIPOS) {
-        const archivos = fd.getAll(`fotos_${tipo}`).filter(f => f && typeof f === "object" && "arrayBuffer" in f);
-        if (archivos.length > MAX_FOTOS_TIPO) {
-            return json({ error: `Máximo ${MAX_FOTOS_TIPO} fotografías de ${tipo}` }, 400);
+    return json({ ok: true, id: registro.id, duplicado: !!existe, subida: await permisoSubida(env, registro.id) }, existe ? 200 : 201);
+}
+
+/* ============================
+   SUBIR UNA FOTO (original o miniatura), directo a R2 sin pasar por memoria
+============================ */
+function extension(tipoContenido) {
+    const sub = (tipoContenido.split("/")[1] || "").split(";")[0].trim().toLowerCase().replace(/^x-/, "");
+    return EXT_CONOCIDAS[sub] || sub.replace(/[^a-z0-9]/g, "").slice(0, 5) || "img";
+}
+
+async function subirFoto(request, env, url, id, tipo, orden) {
+    const exp = Number(request.headers.get("X-Exp"));
+    const token = request.headers.get("X-Token") || "";
+    if (!exp || exp < Math.floor(Date.now() / 1000) || !iguales(token, await firmaSubida(env, id, exp))) {
+        return json({ error: "Permiso de subida no válido o vencido. Guarde de nuevo el registro." }, 403);
+    }
+    if (orden < 1) return json({ error: "Número de foto no válido" }, 400);
+
+    const tipoContenido = (request.headers.get("Content-Type") || "").toLowerCase();
+    if (!tipoContenido.startsWith("image/")) return json({ error: "El archivo no es una imagen" }, 415);
+    if (!request.body) return json({ error: "La fotografía llegó vacía" }, 400);
+
+    const existe = await env.DB.prepare("SELECT id FROM registros WHERE id = ?").bind(id).first();
+    if (!existe) return json({ error: "El registro no existe" }, 404);
+
+    const esMini = url.searchParams.get("mini") === "1";
+    const key = esMini ? `${id}/${tipo}_${orden}_mini.jpg` : `${id}/${tipo}_${orden}.${extension(tipoContenido)}`;
+
+    // Se guarda tal cual llega: sin recomprimir ni reducir
+    const objeto = await env.FOTOS.put(key, request.body, { httpMetadata: { contentType: tipoContenido } });
+
+    if (esMini) {
+        const r = await env.DB.prepare("UPDATE fotos SET mini_key = ? WHERE registro_id = ? AND tipo = ? AND orden = ?")
+            .bind(key, id, tipo, orden).run();
+        if (!r.meta || r.meta.changes === 0) {
+            await env.FOTOS.delete(key);
+            return json({ error: "Suba primero la fotografía original" }, 409);
         }
-        archivos.forEach((archivo, i) => {
-            fotos.push({ tipo, orden: i + 1, archivo });
-        });
-    }
-    for (const f of fotos) {
-        if (!EXTENSIONES[f.archivo.type]) return json({ error: "Solo se aceptan imágenes JPG, PNG o WEBP" }, 400);
-        if (f.archivo.size > MAX_BYTES_FOTO) return json({ error: "Una fotografía supera el tamaño máximo (8 MB)" }, 413);
-    }
-
-    // Subir fotos a R2
-    const subidas = [];
-    try {
-        for (const f of fotos) {
-            const key = `${registro.id}/${f.tipo}_${f.orden}.${EXTENSIONES[f.archivo.type]}`;
-            await env.FOTOS.put(key, await f.archivo.arrayBuffer(), {
-                httpMetadata: { contentType: f.archivo.type }
-            });
-            subidas.push({ ...f, key });
+    } else {
+        // Si ya había una foto en esa posición con otro formato, se reemplaza
+        const { results: previas } = await env.DB.prepare(
+            "SELECT r2_key, mini_key FROM fotos WHERE registro_id = ? AND tipo = ? AND orden = ? AND r2_key <> ?"
+        ).bind(id, tipo, orden, key).all();
+        if (previas.length) {
+            await env.FOTOS.delete(previas.flatMap(p => [p.r2_key, p.mini_key].filter(Boolean)));
+            await env.DB.prepare("DELETE FROM fotos WHERE registro_id = ? AND tipo = ? AND orden = ? AND r2_key <> ?")
+                .bind(id, tipo, orden, key).run();
         }
-
-        const sentencias = [
-            env.DB.prepare(`INSERT INTO registros
-                (id, fecha_registro, recibido_en, municipio, barrio, direccion, direccion_gps,
-                 latitud, longitud, precision_m, coordenadas, tipo_expendio, actor, sustancia,
-                 venezolanos, marquillas, funcionarios, zap, funcionarios_json)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
-                registro.id, registro.fecha_registro, registro.recibido_en, registro.municipio,
-                registro.barrio, registro.direccion, registro.direccion_gps,
-                registro.latitud, registro.longitud, registro.precision_m, registro.coordenadas,
-                registro.tipo_expendio, registro.actor, registro.sustancia, registro.venezolanos,
-                registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json
-            ),
-            ...subidas.map(s => env.DB.prepare(
-                "INSERT INTO fotos (registro_id, tipo, orden, r2_key, tamano, content_type) VALUES (?,?,?,?,?,?)"
-            ).bind(registro.id, s.tipo, s.orden, s.key, s.archivo.size, s.archivo.type))
-        ];
-        await env.DB.batch(sentencias);
-    } catch (err) {
-        // Si algo falla, no dejar fotos huérfanas
-        if (subidas.length) await env.FOTOS.delete(subidas.map(s => s.key)).catch(() => {});
-        throw err;
+        await env.DB.prepare(`INSERT INTO fotos (registro_id, tipo, orden, r2_key, tamano, content_type)
+                              VALUES (?,?,?,?,?,?)
+                              ON CONFLICT(r2_key) DO UPDATE SET tamano = excluded.tamano, content_type = excluded.content_type`)
+            .bind(id, tipo, orden, key, objeto ? objeto.size : null, tipoContenido).run();
     }
 
-    return json({ ok: true, id: registro.id, fotos: subidas.length }, 201);
+    return json({ ok: true, key, tamano: objeto ? objeto.size : null }, 201);
 }
 
 /* ============================
@@ -272,18 +295,22 @@ async function listarRegistros(env, url) {
         "SELECT * FROM registros ORDER BY recibido_en DESC LIMIT 20000"
     ).all();
     const { results: fotos } = await env.DB.prepare(
-        "SELECT registro_id, tipo, orden, r2_key, tamano FROM fotos ORDER BY registro_id, tipo, orden"
+        "SELECT registro_id, tipo, orden, r2_key, mini_key, tamano, content_type FROM fotos ORDER BY registro_id, tipo, orden"
     ).all();
 
     const dias = Math.max(1, Math.min(365, Number(env.LINK_DIAS) || 30));
     const exp = Math.floor(Date.now() / 1000) + dias * 86400;
     const base = url.origin;
+    const enlace = async key => `${base}/api/fotos/${key}?exp=${exp}&sig=${await firmaFoto(env, key, exp)}`;
 
     const porRegistro = new Map();
     for (const f of fotos) {
-        const sig = await firmar(env, f.r2_key, exp);
-        const enlace = `${base}/api/fotos/${f.r2_key}?exp=${exp}&sig=${sig}`;
-        const item = { tipo: f.tipo, orden: f.orden, tamano: f.tamano, ver: enlace, descargar: enlace + "&dl=1" };
+        const ver = await enlace(f.r2_key);
+        const item = {
+            tipo: f.tipo, orden: f.orden, tamano: f.tamano, formato: f.content_type,
+            ver, descargar: ver + "&dl=1",
+            mini: f.mini_key ? await enlace(f.mini_key) : null
+        };
         if (!porRegistro.has(f.registro_id)) porRegistro.set(f.registro_id, []);
         porRegistro.get(f.registro_id).push(item);
     }
@@ -310,15 +337,16 @@ async function listarRegistros(env, url) {
    ELIMINAR REGISTRO
 ============================ */
 async function eliminarRegistro(env, id) {
-    const { results } = await env.DB.prepare("SELECT r2_key FROM fotos WHERE registro_id = ?").bind(id).all();
     const existe = await env.DB.prepare("SELECT id FROM registros WHERE id = ?").bind(id).first();
     if (!existe) return json({ error: "Registro no encontrado" }, 404);
+    const { results } = await env.DB.prepare("SELECT r2_key, mini_key FROM fotos WHERE registro_id = ?").bind(id).all();
 
     await env.DB.batch([
         env.DB.prepare("DELETE FROM fotos WHERE registro_id = ?").bind(id),
         env.DB.prepare("DELETE FROM registros WHERE id = ?").bind(id)
     ]);
-    if (results.length) await env.FOTOS.delete(results.map(r => r.r2_key));
+    const claves = results.flatMap(r => [r.r2_key, r.mini_key].filter(Boolean));
+    for (let i = 0; i < claves.length; i += 1000) await env.FOTOS.delete(claves.slice(i, i + 1000));
     return json({ ok: true });
 }
 
@@ -330,13 +358,13 @@ async function servirFoto(env, url) {
     const exp = Number(url.searchParams.get("exp"));
     const sig = url.searchParams.get("sig") || "";
 
-    if (!/^[A-Za-z0-9-]{8,64}\/(actor|marquilla|punto)_\d{1,2}\.(jpg|png|webp)$/.test(r2Key)) {
+    if (!/^[A-Za-z0-9-]{8,64}\/(actor|marquilla|punto)_\d{1,3}(_mini)?\.[a-z0-9]{2,5}$/.test(r2Key)) {
         return mensaje("Enlace no válido.", 400);
     }
     if (!exp || exp < Math.floor(Date.now() / 1000)) {
         return mensaje("Este enlace expiró. Descargue un Excel nuevo desde el panel de registros.", 403);
     }
-    if (!iguales(sig, await firmar(env, r2Key, exp))) {
+    if (!iguales(sig, await firmaFoto(env, r2Key, exp))) {
         return mensaje("Enlace no válido.", 403);
     }
 
@@ -347,7 +375,8 @@ async function servirFoto(env, url) {
     const descargar = url.searchParams.get("dl") === "1";
     return new Response(objeto.body, {
         headers: {
-            "Content-Type": objeto.httpMetadata?.contentType || "image/jpeg",
+            "Content-Type": objeto.httpMetadata?.contentType || "application/octet-stream",
+            "Content-Length": String(objeto.size),
             "Content-Disposition": `${descargar ? "attachment" : "inline"}; filename="${nombre}"`,
             "Cache-Control": "private, max-age=3600",
             "X-Content-Type-Options": "nosniff",

@@ -30,12 +30,12 @@
 .dlg-cabeza{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
 .dlg-icono{
     flex:0 0 38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:18px; background:#eaf3fb; color:#003b73;
+    font-weight:800; font-size:18px; background:#e6f2eb; color:#0d5c37;
 }
 .dlg[data-tipo="aviso"] .dlg-icono{ background:#fff4e0; color:#9a5b00; }
 .dlg[data-tipo="peligro"] .dlg-icono{ background:#fdecea; color:#c62828; }
 .dlg[data-tipo="exito"] .dlg-icono{ background:#e8f5e9; color:#16803c; }
-.dlg-titulo{ margin:0; font-size:17px; font-weight:700; color:#003b73; line-height:1.3; }
+.dlg-titulo{ margin:0; font-size:17px; font-weight:700; color:#0d5c37; line-height:1.3; }
 .dlg[data-tipo="peligro"] .dlg-titulo{ color:#c62828; }
 .dlg-mensaje{ margin:0; font-size:15px; line-height:1.45; color:#344054; white-space:pre-line; }
 .dlg-datos{
@@ -51,11 +51,11 @@
 }
 .dlg-cancelar{ background:#eef2f6; color:#263238; }
 .dlg-cancelar:hover{ background:#e2e8ef; }
-.dlg-aceptar{ background:#003b73; color:#fff; }
-.dlg-aceptar:hover{ background:#002d59; }
+.dlg-aceptar{ background:#0d5c37; color:#fff; }
+.dlg-aceptar:hover{ background:#0a4a2c; }
 .dlg[data-tipo="peligro"] .dlg-aceptar{ background:#c62828; }
 .dlg[data-tipo="peligro"] .dlg-aceptar:hover{ background:#a61f1f; }
-.dlg-botones button:focus-visible{ outline:3px solid rgba(0,92,169,.35); outline-offset:2px; }
+.dlg-botones button:focus-visible{ outline:3px solid rgba(18,122,71,.35); outline-offset:2px; }
 @media (max-width:520px){
     .dlg-fondo{ align-items:flex-end; padding:0; }
     .dlg{ width:100%; border-radius:18px 18px 0 0; padding:22px 18px calc(18px + env(safe-area-inset-bottom)); }
