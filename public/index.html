@@ -321,6 +321,7 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
         <div class="gps-row">
             <button type="button" class="btn-gps" id="btnGPS">📍 Obtener ubicación y dirección</button>
             <span id="gpsEstado" class="estado" aria-live="polite">Ubicación no capturada</span>
+            <button type="button" class="btn-secondary btn-chico" id="btnAyudaGPS" hidden>❓ ¿Cómo activar la ubicación?</button>
         </div>
 
         <div class="coordinates">
@@ -842,6 +843,7 @@ function obtenerGPS(){
             $("longitud").value = longitude.toFixed(8);
             actualizarCoordenadas();
             $("campoGPS").classList.remove("con-error");
+            $("btnAyudaGPS").hidden = true;
 
             if (accuracy > CONFIG.PRECISION_ACEPTABLE_M){
                 setEstado(estado, `⚠ Precisión baja (±${precisionGPS} m). Intente de nuevo a cielo abierto.`, "warn");
@@ -854,14 +856,102 @@ function obtenerGPS(){
         err => {
             btn.disabled = false;
             const mensajes = {
-                1: "Permiso de ubicación denegado. Actívelo en la configuración del navegador.",
-                2: "No hay señal de ubicación disponible.",
-                3: "Se agotó el tiempo de espera. Intente de nuevo."
+                1: "La ubicación está bloqueada en este celular.",
+                2: "No se pudo obtener la ubicación (la ubicación del celular puede estar apagada).",
+                3: "Se agotó el tiempo de espera. Intente de nuevo a cielo abierto."
             };
             setEstado(estado, mensajes[err.code] || "No fue posible obtener la ubicación.", "err");
+            $("btnAyudaGPS").hidden = false;
+            // Permiso negado, o ubicación apagada en el iPhone: mostrar la guía paso a paso
+            if (err.code === 1 || (err.code === 2 && entornoNavegador().ios)){
+                guiaUbicacion(err.code === 1
+                    ? "El celular no está dejando que la encuesta use la ubicación. Siga estos pasos una sola vez:"
+                    : "La ubicación del celular parece estar apagada. Siga estos pasos:");
+            }
         },
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
+}
+
+/* ============================
+   GUÍA PARA ACTIVAR LA UBICACIÓN (iPhone / Android)
+============================ */
+function entornoNavegador(){
+    const ua = navigator.userAgent || "";
+    const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const android = /Android/i.test(ua);
+    let nav = "otro";
+    if (/FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat/i.test(ua)) nav = "app";
+    else if (ios && /CriOS/i.test(ua)) nav = "chrome";
+    else if (ios && /FxiOS|EdgiOS|OPiOS/i.test(ua)) nav = "otro";
+    else if (ios) nav = "safari";
+    else if (android && /SamsungBrowser/i.test(ua)) nav = "samsung";
+    else if (android && /Chrome/i.test(ua)) nav = "chrome";
+    return { ios, android, nav };
+}
+
+async function guiaUbicacion(motivo){
+    const { ios, android, nav } = entornoNavegador();
+    let titulo = "Active la ubicación del celular";
+    let grupos = [];
+    let nota = "Después de activarla, vuelva a esta página y toque “Intentar de nuevo”. Si no puede activarla, escriba la latitud y la longitud manualmente.";
+
+    if (nav === "app"){
+        grupos = [{ titulo: "Abra la encuesta en el navegador", pasos: [
+            "Esta aplicación no permite usar la ubicación. Toque los <b>tres puntos (⋯)</b> de la esquina.",
+            "Elija <b>Abrir en el navegador</b> (Safari o Chrome).",
+            "En el navegador, toque <b>📍 Obtener ubicación</b> y luego <b>Permitir</b>."
+        ]}];
+    } else if (ios){
+        titulo = "Active la ubicación en el iPhone";
+        grupos.push({ titulo: "1. Ubicación del iPhone", pasos: [
+            "Abra la app <b>Ajustes</b> ⚙️ del iPhone.",
+            "Entre a <b>Privacidad y seguridad</b> → <b>Localización</b>.",
+            "Active el interruptor <b>Localización</b> (debe quedar en verde)."
+        ]});
+        if (nav === "chrome"){
+            grupos.push({ titulo: "2. Permiso para Chrome", pasos: [
+                "En esa misma lista (Localización), baje y toque <b>Chrome</b>.",
+                "Elija <b>Mientras se use la app</b> y active <b>Ubicación exacta</b>.",
+                "Vuelva a Chrome, <b>recargue la página</b> ↻ y toque <b>📍 Obtener ubicación</b> → <b>Permitir</b>."
+            ]});
+        } else {
+            grupos.push({ titulo: "2. Permiso para Safari", pasos: [
+                "En esa misma lista (Localización), baje y toque <b>Sitios web de Safari</b>.",
+                "Elija <b>Preguntar la próxima vez</b> o <b>Mientras se use la app</b>, y active <b>Ubicación exacta</b>.",
+                "Vuelva a Safari. Toque el botón <b>aA</b> o <b>☰</b> junto a la dirección de la página → <b>Configuración del sitio web</b> → <b>Ubicación</b> → <b>Permitir</b>.",
+                "<b>Recargue la página</b> ↻ y toque <b>📍 Obtener ubicación</b> → <b>Permitir</b>."
+            ]});
+        }
+    } else if (android){
+        titulo = "Active la ubicación en el celular";
+        grupos.push({ titulo: "1. Ubicación del celular", pasos: [
+            "Deslice hacia abajo desde la parte superior de la pantalla.",
+            "Active el ícono <b>Ubicación</b> 📍 (debe quedar encendido)."
+        ]});
+        grupos.push({ titulo: "2. Permiso para esta página", pasos: [
+            "Toque el ícono <b>🔒 o ⚙</b> a la izquierda de la dirección de la página.",
+            "Entre a <b>Permisos</b> → <b>Ubicación</b> → <b>Permitir</b>.",
+            "<b>Recargue la página</b> ↻ y toque <b>📍 Obtener ubicación</b> → <b>Permitir</b>."
+        ]});
+    } else {
+        grupos.push({ titulo: "", pasos: [
+            "Active la ubicación del equipo.",
+            "En el navegador, toque el ícono 🔒 junto a la dirección → <b>Ubicación</b> → <b>Permitir</b>.",
+            "Recargue la página y toque <b>📍 Obtener ubicación</b>."
+        ]});
+    }
+
+    const reintentar = await dialogo({
+        titulo,
+        mensaje: motivo,
+        tipo: "aviso",
+        grupos,
+        nota,
+        aceptar: "Intentar de nuevo",
+        cancelar: "Cerrar"
+    });
+    if (reintentar) obtenerGPS();
 }
 
 function coordenadasValidas(){
@@ -1400,7 +1490,31 @@ agregarFuncionario({ zap: "" });
 restaurarBorrador();
 $("btnAgregarFunc").addEventListener("click", () => { agregarFuncionario({}, true); guardarBorrador(); });
 
-$("btnGPS").addEventListener("click", obtenerGPS);
+$("btnGPS").addEventListener("click", async () => {
+    // Si el navegador ya sabe que el permiso está bloqueado, mostrar la guía de una vez
+    try{
+        if (navigator.permissions && navigator.permissions.query){
+            const p = await navigator.permissions.query({ name: "geolocation" });
+            if (p.state === "denied"){
+                setEstado($("gpsEstado"), "La ubicación está bloqueada en este celular.", "err");
+                $("btnAyudaGPS").hidden = false;
+                guiaUbicacion("El celular no está dejando que la encuesta use la ubicación. Siga estos pasos una sola vez:");
+                return;
+            }
+            let yaAviso = false;
+            try{ yaAviso = localStorage.getItem("mebuc_aviso_gps") === "1"; }catch(_){}
+            if (p.state === "prompt" && entornoNavegador().ios && !yaAviso){
+                try{ localStorage.setItem("mebuc_aviso_gps", "1"); }catch(_){}
+                const seguir = await confirmar("A continuación el iPhone le preguntará si permite usar su ubicación. Toque “Permitir”.", {
+                    titulo: "Permiso de ubicación", aceptar: "Entendido", cancelar: "Cancelar"
+                });
+                if (!seguir) return;
+            }
+        }
+    }catch(_){ /* navegador sin esta función: se pide directamente */ }
+    obtenerGPS();
+});
+$("btnAyudaGPS").addEventListener("click", () => guiaUbicacion("Siga estos pasos para permitir que la encuesta use la ubicación:"));
 $("btnCompartir").addEventListener("click", () => window.abrirCompartir && window.abrirCompartir());
 $("btnDireccion").addEventListener("click", () => {
     const c = coordenadasValidas();

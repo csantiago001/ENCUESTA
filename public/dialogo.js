@@ -44,6 +44,19 @@
 }
 .dlg-datos dt{ font-weight:700; color:#52514e; }
 .dlg-datos dd{ margin:0; color:#17202a; word-break:break-word; }
+.dlg-pasos{ margin:12px 0 0; padding:0; list-style:none; counter-reset:paso; display:flex; flex-direction:column; gap:8px; }
+.dlg-pasos li{
+    counter-increment:paso; position:relative; padding:9px 10px 9px 42px; background:#f3f8f5;
+    border:1px solid #e1ebe5; border-radius:10px; font-size:14px; line-height:1.4; color:#14211a;
+}
+.dlg-pasos li::before{
+    content:counter(paso); position:absolute; left:10px; top:9px; width:22px; height:22px; border-radius:50%;
+    background:#0d5c37; color:#fff; font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center;
+}
+.dlg-pasos b{ color:#0a4a2c; }
+.dlg-subtitulo{ margin:14px 0 0; font-size:12px; font-weight:800; color:#0a4a2c; text-transform:uppercase; letter-spacing:.04em; }
+.dlg-nota{ margin:12px 0 0; font-size:12.5px; color:#5d6b64; }
+.dlg{ max-height:calc(100vh - 32px); overflow-y:auto; }
 .dlg-botones{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 .dlg-botones button{
     border:none; border-radius:9px; padding:11px 18px; min-height:44px; font-size:15px; font-weight:700;
@@ -72,7 +85,7 @@
     let abierto = null;
 
     function dialogo(op) {
-        const o = Object.assign({ titulo: "", mensaje: "", aceptar: "Aceptar", cancelar: null, tipo: "info", datos: null }, op);
+        const o = Object.assign({ titulo: "", mensaje: "", aceptar: "Aceptar", cancelar: null, tipo: "info", datos: null, grupos: null, nota: "" }, op);
         if (abierto) abierto.cerrar(false);
 
         return new Promise(resolve => {
@@ -114,6 +127,32 @@
                     dl.append(dt, dd);
                 });
                 caja.appendChild(dl);
+            }
+
+            // grupos: [{ titulo, pasos: ["texto con <b>negritas</b>", ...] }]  (texto propio, no del usuario)
+            if (Array.isArray(o.grupos)) {
+                o.grupos.forEach(g => {
+                    if (g.titulo) {
+                        const h = document.createElement("p");
+                        h.className = "dlg-subtitulo";
+                        h.textContent = g.titulo;
+                        caja.appendChild(h);
+                    }
+                    const ol = document.createElement("ol");
+                    ol.className = "dlg-pasos";
+                    g.pasos.forEach(t => {
+                        const li = document.createElement("li");
+                        li.innerHTML = t;
+                        ol.appendChild(li);
+                    });
+                    caja.appendChild(ol);
+                });
+            }
+            if (o.nota) {
+                const n = document.createElement("p");
+                n.className = "dlg-nota";
+                n.textContent = o.nota;
+                caja.appendChild(n);
             }
 
             const botones = document.createElement("div");
