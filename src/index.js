@@ -13,7 +13,7 @@
  *   Cualquier otra ruta se sirve desde /public (formulario y panel).
  */
 
-const TIPOS = ["actor", "marquilla", "punto"];
+const TIPOS = ["actor", "cedula", "marquilla", "punto"];
 const MUNICIPIOS = ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Lebrija", "Los Santos"];
 const TIPOS_EXPENDIO = ["Móvil", "Fijo"];
 const GRADOS = {
@@ -54,13 +54,35 @@ async function asegurarEsquema(env) {
         "ALTER TABLE fotos ADD COLUMN mini_key TEXT",
         "ALTER TABLE registros ADD COLUMN correo_registra TEXT",
         "ALTER TABLE registros ADD COLUMN nombre_registra TEXT",
-        "ALTER TABLE registros ADD COLUMN sustancias_json TEXT"
+        "ALTER TABLE registros ADD COLUMN sustancias_json TEXT",
+        "ALTER TABLE registros ADD COLUMN estructuras_json TEXT",
+        "ALTER TABLE registros ADD COLUMN actores_json TEXT"
     ]) {
         try {
             await env.DB.prepare(sql).run();
         } catch (err) {
             if (!/duplicate column/i.test(String(err && err.message))) throw err;
         }
+    }
+    // La tabla fotos se creó con CHECK (tipo IN ('actor','marquilla','punto')): se rehace para aceptar "cedula"
+    const def = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'fotos'").first();
+    if (def && def.sql && !def.sql.includes("cedula")) {
+        await env.DB.batch([
+            env.DB.prepare(`CREATE TABLE fotos_nueva (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                registro_id TEXT NOT NULL REFERENCES registros(id) ON DELETE CASCADE,
+                tipo TEXT NOT NULL CHECK (tipo IN ('actor','cedula','marquilla','punto')),
+                orden INTEGER NOT NULL,
+                r2_key TEXT NOT NULL UNIQUE,
+                tamano INTEGER,
+                content_type TEXT,
+                mini_key TEXT)`),
+            env.DB.prepare(`INSERT INTO fotos_nueva (id, registro_id, tipo, orden, r2_key, tamano, content_type, mini_key)
+                            SELECT id, registro_id, tipo, orden, r2_key, tamano, content_type, mini_key FROM fotos`),
+            env.DB.prepare("DROP TABLE fotos"),
+            env.DB.prepare("ALTER TABLE fotos_nueva RENAME TO fotos"),
+            env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_fotos_registro ON fotos(registro_id)")
+        ]);
     }
     esquemaListo = true;
 }
@@ -75,7 +97,7 @@ async function enrutar(request, env, url) {
 
     if (pathname === "/api/caracterizaciones" && metodo === "POST") return crearRegistro(request, env, url);
 
-    const subida = pathname.match(/^\/api\/caracterizaciones\/([A-Za-z0-9-]{8,64})\/fotos\/(actor|marquilla|punto)\/(\d{1,3})$/);
+    const subida = pathname.match(/^\/api\/caracterizaciones\/([A-Za-z0-9-]{8,64})\/fotos\/(actor|cedula|marquilla|punto)\/(\d{1,3})$/);
     if (subida && metodo === "PUT") return subirFoto(request, env, url, subida[1], subida[2], Number(subida[3]));
 
     if (pathname === "/api/verificar" && metodo === "GET") {
@@ -185,6 +207,8 @@ async function crearRegistro(request, env, url) {
         actor: texto(d.actor),
         sustancia: texto(d.sustancia),
         sustancias_json: "[]",
+        estructuras_json: "[]",
+        actores_json: "[]",
         correo_registra: texto(d.correo_registra, 120).toLowerCase(),
         nombre_registra: texto(d.nombre_registra, 120),
         venezolanos: ["SI", "NO"].includes(d.venezolanos) ? d.venezolanos : "",
@@ -220,13 +244,35 @@ async function crearRegistro(request, env, url) {
             };
         }).filter(x => x.id && x.nombre);
         registro.sustancias_json = JSON.stringify(sustancias);
+        if (!sustancias.length || sustancias.some(x => !x.valor)) registro.sustanciaIncompleta = true;
         registro.sustancia = sustancias
             .map(x => x.nombre + (x.valor ? ` ($${x.valor.toLocaleString("es-CO")})` : ""))
             .join(" · ");
     }
 
+    // Estructuras: [{ id, nombre, otra }]
+    const estructuras = (Array.isArray(d.estructuras_lista) ? d.estructuras_lista : []).slice(0, 20).map(x => ({
+        id: texto(x && x.id, 20), nombre: texto(x && x.nombre, 80), otra: texto(x && x.otra, 80)
+    })).filter(x => x.id && x.nombre && (x.id !== "otra" || x.otra));
+    // Actores: [{ alias, foto, cedula }]  (la foto n corresponde al actor n)
+    const actores = (Array.isArray(d.actores_lista) ? d.actores_lista : []).slice(0, 15).map(x => ({
+        alias: texto(x && x.alias, 120), foto: !!(x && x.foto), cedula: !!(x && x.cedula)
+    }));
+    registro.estructuras_json = JSON.stringify(estructuras);
+    registro.actores_json = JSON.stringify(actores);
+    const textoEstructuras = estructuras.map(x => x.nombre).join(", ");
+    const textoActores = actores.map(x => x.alias).filter(Boolean).join(", ");
+    if (textoEstructuras || textoActores) {
+        registro.actor = [textoEstructuras && `Estructura: ${textoEstructuras}`, textoActores && `Actores: ${textoActores}`].filter(Boolean).join(" · ");
+    }
+
     const errores = [];
+    if (!estructuras.length) errores.push("estructura");
+    if (!actores.length || actores.some(a => !a.alias)) errores.push("actor reconocido (nombre o alias)");
+    if (!registro.venezolanos) errores.push("vinculación de venezolanos");
+    if (!registro.marquillas) errores.push("marquillas");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(registro.correo_registra)) errores.push("correo electrónico");
+    if (!Array.isArray(d.sustancias_lista) || registro.sustanciaIncompleta) errores.push("sustancias y valor de la dosis");
     if (registro.nombre_registra.split(/\s+/).filter(Boolean).length < 2) errores.push("nombre completo");
     if (!/^[A-Za-z0-9-]{8,64}$/.test(registro.id)) errores.push("identificador");
     if (!MUNICIPIOS.includes(registro.municipio)) errores.push("municipio");
@@ -245,14 +291,15 @@ async function crearRegistro(request, env, url) {
             (id, fecha_registro, recibido_en, municipio, barrio, direccion, direccion_gps,
              latitud, longitud, precision_m, coordenadas, tipo_expendio, actor, sustancia,
              venezolanos, marquillas, funcionarios, zap, funcionarios_json,
-             correo_registra, nombre_registra, sustancias_json)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
+             correo_registra, nombre_registra, sustancias_json, estructuras_json, actores_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
             registro.id, registro.fecha_registro, registro.recibido_en, registro.municipio,
             registro.barrio, registro.direccion, registro.direccion_gps,
             registro.latitud, registro.longitud, registro.precision_m, registro.coordenadas,
             registro.tipo_expendio, registro.actor, registro.sustancia, registro.venezolanos,
             registro.marquillas, registro.funcionarios, registro.zap, registro.funcionarios_json,
-            registro.correo_registra, registro.nombre_registra, registro.sustancias_json
+            registro.correo_registra, registro.nombre_registra, registro.sustancias_json,
+            registro.estructuras_json, registro.actores_json
         ).run();
     }
 
@@ -350,8 +397,10 @@ async function listarRegistros(env, url) {
         try { funcionariosLista = JSON.parse(r.funcionarios_json || "[]"); } catch { /* registro antiguo */ }
         let sustanciasLista = [];
         try { sustanciasLista = JSON.parse(r.sustancias_json || "[]"); } catch { /* registro antiguo */ }
-        const { funcionarios_json, sustancias_json, ...resto } = r;
-        return { ...resto, funcionarios_lista: funcionariosLista, sustancias_lista: sustanciasLista, fotos: agrupadas };
+        const leerJSON = t => { try { return JSON.parse(t || "[]"); } catch { return []; } };
+        const { funcionarios_json, sustancias_json, estructuras_json, actores_json, ...resto } = r;
+        return { ...resto, funcionarios_lista: funcionariosLista, sustancias_lista: sustanciasLista,
+                 estructuras_lista: leerJSON(estructuras_json), actores_lista: leerJSON(actores_json), fotos: agrupadas };
     });
 
     return json({
@@ -387,7 +436,7 @@ async function servirFoto(env, url) {
     const exp = Number(url.searchParams.get("exp"));
     const sig = url.searchParams.get("sig") || "";
 
-    if (!/^[A-Za-z0-9-]{8,64}\/(actor|marquilla|punto)_\d{1,3}(_mini)?\.[a-z0-9]{2,5}$/.test(r2Key)) {
+    if (!/^[A-Za-z0-9-]{8,64}\/(actor|cedula|marquilla|punto)_\d{1,3}(_mini)?\.[a-z0-9]{2,5}$/.test(r2Key)) {
         return mensaje("Enlace no válido.", 400);
     }
     if (!exp || exp < Math.floor(Date.now() / 1000)) {

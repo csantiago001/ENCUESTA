@@ -330,6 +330,16 @@ tr.fila:hover td{ background:var(--verde-100); }
                 <div id="gZap"></div>
             </section>
             <section class="card">
+                <h2 class="g-titulo">Estructuras asociadas</h2>
+                <p class="g-sub">Número de puntos asociados a cada estructura.</p>
+                <div id="gEstructuras"></div>
+            </section>
+            <section class="card">
+                <h2 class="g-titulo">Actores reconocidos</h2>
+                <p class="g-sub">Total de actores registrados y con foto de cédula.</p>
+                <div id="gActores"></div>
+            </section>
+            <section class="card">
                 <h2 class="g-titulo">Sustancias más reportadas</h2>
                 <p class="g-sub">Número de puntos donde se comercializa cada sustancia.</p>
                 <div id="gSustancias"></div>
@@ -364,7 +374,7 @@ tr.fila:hover td{ background:var(--verde-100); }
                         <th>ZAP</th>
                         <th class="col-opc">Diligenció</th>
                         <th>Tipo</th>
-                        <th class="col-opc">Estructura / actor</th>
+                        <th class="col-opc">Estructura</th>
                         <th>Fotos</th>
                     </tr>
                 </thead>
@@ -391,9 +401,21 @@ const API = "/api";
 const CLAVE_SESION = "mebuc_admin";
 const TIPOS = [
     { id: "actor",     nombre: "Actor" },
+    { id: "cedula",    nombre: "Cédula del actor" },
     { id: "marquilla", nombre: "Marquilla" },
     { id: "punto",     nombre: "Punto de expendio" }
 ];
+const textoEstructuras = r => (r.estructuras_lista || []).map(x => x.nombre).join(", ");
+const textoActores = (r, sep = ", ") => (r.actores_lista || []).map((a, i) => `${i + 1}. ${a.alias}`).join(sep);
+/* Nombre de una foto: para actor y cédula incluye el alias del actor */
+function etiquetaFoto(r, tipo, orden){
+    const t = TIPOS.find(x => x.id === tipo);
+    if (tipo === "actor" || tipo === "cedula"){
+        const a = (r.actores_lista || [])[orden - 1];
+        return `${tipo === "actor" ? "Actor" : "Cédula"} ${orden}${a && a.alias ? " – " + a.alias : ""}`;
+    }
+    return `${t ? t.nombre : tipo} ${orden}`;
+}
 
 const $ = id => document.getElementById(id);
 let clave = "";
@@ -494,7 +516,7 @@ function filtrar(){
         if (desde && dia < desde) return false;
         if (hasta && dia > hasta) return false;
         if (texto){
-            const todo = normalizar([r.barrio, r.direccion, r.actor, textoSustancias(r), r.marquillas, r.funcionarios, r.zap, r.municipio, r.nombre_registra, r.correo_registra].join(" "));
+            const todo = normalizar([r.barrio, r.direccion, r.actor, textoEstructuras(r), textoActores(r), textoSustancias(r), r.marquillas, r.funcionarios, r.zap, r.municipio, r.nombre_registra, r.correo_registra].join(" "));
             if (!todo.includes(texto)) return false;
         }
         return true;
@@ -528,7 +550,7 @@ function pintar(){
             <td style="white-space:nowrap">${esc(r.zap || "")}</td>
             <td class="col-opc">${esc(r.nombre_registra || "")}</td>
             <td><span class="chip ${r.tipo_expendio === "Fijo" ? "fijo" : ""}">${esc(r.tipo_expendio)}</span></td>
-            <td class="col-opc">${esc((r.actor || "").slice(0, 60))}${(r.actor || "").length > 60 ? "…" : ""}</td>
+            <td class="col-opc">${esc(((textoEstructuras(r) || r.actor || "")).slice(0, 60))}</td>
             <td class="num-fotos">📷 ${totalFotos(r)}</td>
         </tr>`).join("");
 }
@@ -651,6 +673,12 @@ function pintarGraficos(){
         zaps.forEach(z => porZap.set("ZAP " + z, (porZap.get("ZAP " + z) || 0) + 1));
     });
     barrasHorizontales("gZap", [...porZap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10));
+    const porEstr = new Map();
+    filtrados.forEach(r => (r.estructuras_lista || []).forEach(x => porEstr.set(x.nombre, (porEstr.get(x.nombre) || 0) + 1)));
+    barrasHorizontales("gEstructuras", [...porEstr.entries()].sort((a, b) => b[1] - a[1]), "puntos");
+    const actoresTot = filtrados.reduce((n, r) => n + (r.actores_lista || []).length, 0);
+    const conCedula = filtrados.reduce((n, r) => n + (r.actores_lista || []).filter(a => a.cedula).length, 0);
+    barrasHorizontales("gActores", actoresTot ? [["Actores registrados", actoresTot], ["Con foto de cédula", conCedula]] : [], "actores");
     const porSust = new Map();
     filtrados.forEach(r => (r.sustancias_lista || []).forEach(x => porSust.set(x.nombre, (porSust.get(x.nombre) || 0) + 1)));
     barrasHorizontales("gSustancias", [...porSust.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12), "puntos");
@@ -734,7 +762,7 @@ function abrirDetalle(r){
                     ${f.mini || /^image\/(jpeg|png|webp|gif|avif)/.test(f.formato || "image/jpeg")
                         ? `<a class="ver" href="${esc(f.ver)}" target="_blank" rel="noopener"><img src="${esc(f.mini || f.ver)}" alt="${esc(t.nombre)} ${f.orden}" loading="lazy"></a>`
                         : `<div class="sin-vista">Vista previa no disponible<br>(${esc((f.formato || "").replace("image/", "").toUpperCase())})</div>`}
-                    <div class="meta">Original${f.tamano ? " · " + tamanoLegible(f.tamano) : ""}</div>
+                    <div class="meta"><b>${esc(etiquetaFoto(r, t.id, f.orden))}</b><br>Original${f.tamano ? " · " + tamanoLegible(f.tamano) : ""}</div>
                     <a class="bajar" href="${esc(f.descargar)}">⬇ Descargar original</a>
                 </div>`).join("")}</div>`
             : `<div class="sin-fotos">Sin fotografías.</div>`;
@@ -759,7 +787,9 @@ function abrirDetalle(r){
             <div class="campo"><div class="k">Latitud, longitud</div><div class="v">${esc(r.latitud)}, ${esc(r.longitud)}${r.precision_m != null ? ` (±${esc(r.precision_m)} m)` : ""}<br><a href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa ↗</a></div></div>
             ${campo("Tipo de expendio", r.tipo_expendio)}
             ${campo("Vinculación de venezolanos", r.venezolanos)}
-            ${campo("Estructura asociada y actor reconocido", r.actor, true)}
+            ${(r.estructuras_lista || []).length
+                ? campo("Estructura asociada", textoEstructuras(r), true) + campo("Actores reconocidos", textoActores(r, "\n"), true)
+                : campo("Estructura asociada y actor reconocido", r.actor, true)}
             ${campo("Sustancias y valor de la dosis", textoSustancias(r, "\n"), true)}
             ${campo("Diligenciado por", r.nombre_registra)}
             <div class="campo"><div class="k">Correo</div><div class="v">${r.correo_registra ? `<a href="mailto:${esc(r.correo_registra)}">${esc(r.correo_registra)}</a>` : "—"}</div></div>
@@ -1031,6 +1061,8 @@ function construirLibro(ExcelJS, registros, meta, recursos){
     const filasSust = [...sust.entries()].sort((a, b) => b[1].n - a[1].n)
         .map(([k, v]) => [k, v.n, pct(v.n, registros.length), v.conValor ? Math.round(v.suma / v.conValor) : "—"]);
     wr.getColumn(9).width = 14;
+    fd = xlTablaResumen(wr, fd, 6, "Estructuras asociadas", ["Estructura", "Registros", "%"],
+        tabla(contar(r => (r.estructuras_lista || []).length ? r.estructuras_lista.map(x => x.nombre) : ["Sin dato"])));
     fd = xlTablaResumen(wr, fd, 6, "Sustancias reportadas", ["Sustancia", "Registros", "%", "Valor promedio"], filasSust);
     fd = xlTablaResumen(wr, fd, 6, "Registros por funcionario que diligencia", ["Funcionario", "Registros", "%"],
         tabla(contar(r => r.nombre_registra || "Sin dato").slice(0, 20)));
@@ -1048,7 +1080,7 @@ function construirLibro(ExcelJS, registros, meta, recursos){
         ["N.°", 10], ["Fecha", 11], ["Hora", 7], ["Diligenciado por", 24], ["Correo de quien diligencia", 28],
         ["Municipio", 13], ["Barrio", 18], ["Dirección", 26],
         ["Tipo de expendio", 10], ["Código(s) ZAP", 10], ["Funcionarios (ZAP · grado · nombre)", 34],
-        ["Estructura asociada y actor reconocido", 30], ["Sustancias y valor de la dosis", 32],
+        ["Estructura(s) asociada(s)", 26], ["Actor(es) reconocido(s)", 26], ["Sustancias y valor de la dosis", 32],
         ["Vinculación venezolanos", 11], ["Identificación de marquillas", 26],
         ["Latitud", 11], ["Longitud", 11], ["Precisión GPS (m)", 9], ["Coordenadas (GMS)", 24], ["Ubicación", 11],
         ["Total fotos", 8], ...colsFotos.map(c => [c.titulo, 13]), ["ID del registro", 38]
@@ -1075,7 +1107,8 @@ function construirLibro(ExcelJS, registros, meta, recursos){
         const fila = ws.addRow([
             i + 1, fecha, hora, r.nombre_registra || "", r.correo_registra || "",
             r.municipio, r.barrio, r.direccion, r.tipo_expendio, r.zap || "", func,
-            r.actor || "", sust, r.venezolanos || "", r.marquillas || "",
+            (r.estructuras_lista || []).length ? textoEstructuras(r).replace(/, /g, "\n") : (r.actor || ""),
+            textoActores(r, "\n"), sust, r.venezolanos || "", r.marquillas || "",
             Number(r.latitud), Number(r.longitud), r.precision_m ?? "", r.coordenadas || "", "", nFotos,
             ...colsFotos.map(() => ""), r.id
         ]);
@@ -1098,7 +1131,7 @@ function construirLibro(ExcelJS, registros, meta, recursos){
         });
         fila.getCell(nC).font = { name: "Consolas", size: 8, color: { argb: XL.gris } };
         const nSust = (r.sustancias_lista || []).length;
-        const lineas = Math.max(1, lista.length, nSust, ...[r.actor, r.marquillas, r.direccion].map(t => Math.ceil(String(t || "").length / 32)));
+        const lineas = Math.max(1, lista.length, nSust, (r.actores_lista || []).length, (r.estructuras_lista || []).length, ...[r.marquillas, r.direccion].map(t => Math.ceil(String(t || "").length / 32)));
         fila.height = Math.min(140, 15 * lineas + 4);
     });
     if (!registros.length){
@@ -1113,7 +1146,7 @@ function construirLibro(ExcelJS, registros, meta, recursos){
 
     /* ---------- Hoja 3: FOTOGRAFÍAS (con miniatura) ---------- */
     const colsF = [["N.° registro", 10], ["Fecha", 11], ["Municipio", 13], ["Barrio", 18], ["Dirección", 26],
-                   ["Tipo de foto", 16], ["N.°", 5], ["Miniatura", 17], ["Tamaño original", 12], ["Formato", 9], ["Descarga (original)", 18]];
+                   ["Foto", 24], ["N.°", 5], ["Miniatura", 17], ["Tamaño original", 12], ["Formato", 9], ["Descarga (original)", 18]];
     const wf = wb.addWorksheet("Fotografías", { views: [{ state: "frozen", ySplit: 6, showGridLines: false }], properties: { tabColor: { argb: XL.oro } } });
     wf.columns = colsF.map(([, w]) => ({ width: w }));
     xlEncabezado(wb, wf, colsF.length, "REGISTRO FOTOGRÁFICO", SUB, detalle, logoId);
@@ -1121,7 +1154,7 @@ function construirLibro(ExcelJS, registros, meta, recursos){
     let k = 0;
     registros.forEach(r => TIPOS.forEach(t => (r.fotos?.[t.id] || []).forEach(foto => {
         const [fecha] = xlFechaHora(r.fecha_registro);
-        const fila = wf.addRow([nro.get(r.id), fecha, r.municipio, r.barrio, r.direccion, t.nombre, foto.orden, "",
+        const fila = wf.addRow([nro.get(r.id), fecha, r.municipio, r.barrio, r.direccion, etiquetaFoto(r, t.id, foto.orden), foto.orden, "",
                                 foto.tamano ? tamanoLegible(foto.tamano) : "", (foto.formato || "").replace("image/", "").toUpperCase(), ""]);
         xlEstiloDatos(fila, colsF.length, k % 2 === 1);
         [1, 2, 6, 7, 9, 10].forEach(c => fila.getCell(c).alignment = { vertical: "middle", horizontal: "center", wrapText: true });

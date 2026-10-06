@@ -183,48 +183,58 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 .ident-datos b{ display:block; font-size:14.5px; color:var(--tinta); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ident-datos span{ display:block; font-size:12.5px; color:var(--gris); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* ---------- Sustancias ---------- */
-.sust-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px; }
-.sust{ position:relative; margin:0; font-weight:600; }
-.sust input{ position:absolute; opacity:0; pointer-events:none; }
-.sust span{
-    display:flex; flex-direction:column; justify-content:center; min-height:46px; padding:7px 10px 7px 34px;
-    border:1px solid var(--borde); border-radius:8px; background:#fff; cursor:pointer; user-select:none;
-    font-size:13.5px; line-height:1.2; position:relative;
+/* ---------- Listas de selección múltiple (compactas) ---------- */
+.hint.multi{ margin:-2px 0 8px; color:var(--verde-700); font-weight:600; }
+.selector-lista{
+    appearance:none; -webkit-appearance:none; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%230d5c37' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") right 12px center/16px no-repeat;
+    border:1px dashed #9fc4ae; color:var(--verde-800); font-weight:700; padding-right:38px; cursor:pointer;
 }
-.sust span small{ font-weight:500; font-size:11px; color:var(--gris); margin-top:2px; }
-.sust span::before{
-    content:""; position:absolute; left:10px; top:50%; transform:translateY(-50%);
-    width:16px; height:16px; border-radius:4px; border:2px solid #9fb3a8; background:#fff;
-}
-.sust input:checked + span{ background:var(--verde-50); border-color:var(--verde-600); color:var(--verde-800); }
-.sust input:checked + span::before{
-    background:var(--verde-600) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat;
-    border-color:var(--verde-600);
-}
-.sust input:focus-visible + span{ box-shadow:0 0 0 3px rgba(18,122,71,.25); }
-.sust.otra span{ border-style:dashed; }
-.sust-elegidas{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
-.sust-elegidas:empty{ display:none; }
+.elegidas{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.elegidas:empty{ display:none; }
 .sust-fila{
-    display:grid; grid-template-columns:1fr 150px; gap:8px; align-items:center;
-    padding:8px 10px; border:1px solid #cfe3d7; border-left:3px solid var(--verde-600); border-radius:8px; background:var(--verde-50);
+    display:grid; grid-template-columns:1fr 42px; gap:8px; align-items:center;
+    padding:7px 8px 7px 10px; border:1px solid #cfe3d7; border-left:3px solid var(--verde-600); border-radius:8px; background:var(--verde-50);
 }
-.sust-fila.con-otra{ grid-template-columns:1fr 1fr 150px; }
-.sust-fila .nombre{ font-weight:700; font-size:13.5px; color:var(--verde-800); }
+.sust-fila.con-valor{ grid-template-columns:1fr 140px 42px; }
+.sust-fila.con-otra{ grid-template-columns:1fr 42px; }
+.sust-fila.con-otra.con-valor{ grid-template-columns:1fr 140px 42px; }
+.sust-fila .nombre{ font-weight:700; font-size:13.5px; color:var(--verde-800); min-width:0; }
+.sust-fila .nombre small{ display:block; font-weight:500; font-size:11px; color:var(--gris); }
 .sust-fila input{ padding:8px 10px; }
+.sust-fila .s-otra{ font-weight:600; }
+.sust-fila .quitar-item{ min-height:38px; width:42px; padding:0; background:#fff; color:var(--rojo); border:1px solid var(--borde); font-size:15px; }
 .precio{ position:relative; }
 .precio::before{ content:"$"; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--gris); font-weight:700; }
 .precio input{ padding-left:22px; }
+
+/* ---------- Actores ---------- */
+.lista-actores{ display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
+.actor{ border:1px solid var(--borde); border-left:3px solid var(--oro); border-radius:10px; padding:10px 12px; background:var(--verde-50); }
+.actor-cab{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.actor-num{ font-size:11px; font-weight:800; color:var(--verde-700); text-transform:uppercase; letter-spacing:.05em; }
+.quitar-actor{ min-height:32px; width:36px; padding:0; background:#fff; color:var(--rojo); border:1px solid var(--borde); }
+.lbl-alias{ font-size:12px; color:var(--gris); }
+.actor-fotos{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.slot{ background:#fff; border:1px dashed #b6cbbf; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px; }
+.slot.invalido{ border-color:var(--rojo) !important; }
+.slot-titulo{ font-size:12px; font-weight:700; color:#26332c; }
+.slot-titulo small{ font-weight:500; color:var(--gris); }
+.slot-botones{ display:flex; flex-direction:column; gap:6px; }
+.slot-botones button, .slot-botones label{ min-height:36px; padding:6px 8px; font-size:12.5px; width:100%; }
+.slot-botones input[type=file]{ display:none; }
+.slot img{ width:100%; height:120px; object-fit:cover; border-radius:6px; display:block; background:#e7ece9; }
+.slot .slot-sinvista{ height:120px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; color:var(--gris); background:#e7ece9; border-radius:6px; padding:6px; }
+.slot .slot-meta{ font-size:11px; color:var(--gris); }
+.slot .slot-acciones{ display:flex; gap:6px; }
+.slot .slot-acciones button{ flex:1; min-height:32px; padding:4px 6px; font-size:12px; }
 @media (max-width:700px){
-    .sust-lista{ grid-template-columns:1fr 1fr; }
-    .sust-fila{ grid-template-columns:1fr 130px; }
-    .sust-fila.con-otra{ grid-template-columns:1fr 130px; }
-    .sust-fila.con-otra .nombre{ grid-column:1 / -1; }
+    .sust-fila.con-valor, .sust-fila.con-otra.con-valor{ grid-template-columns:1fr 120px 42px; }
 }
 
 /* ---------- Fotos ---------- */
+.photo-area.con-error{ border-color:var(--rojo); }
 .photo-area{
+    margin-bottom:0;
     border:1px dashed #b6cbbf; border-radius:var(--radio); padding:12px;
     text-align:center; background:var(--verde-50);
 }
@@ -474,31 +484,34 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
         <div class="error-msg">Seleccione el tipo de expendio.</div>
     </div>
 
-    <div class="field">
-        <label for="actor">Estructura asociada al expendio y actor reconocido</label>
-        <textarea id="actor" name="actor" maxlength="1000" placeholder="Ej. Los del Sur, alias Pepito..."></textarea>
+    <div class="field" id="campoEstructuras">
+        <span class="label">Estructura asociada al expendio <span class="required">*</span></span>
+        <div class="hint multi">☑ Puede seleccionar varias: elija una de la lista y vuelva a abrirla para agregar otra.</div>
+        <div id="listaEstructuras"></div>
+        <div class="error-msg">Seleccione al menos una estructura (si elige “Otra”, escriba cuál).</div>
     </div>
 
     <div class="field" id="campoSustancias">
-        <span class="label">Tipo de sustancia y valor de la dosis</span>
-        <div class="hint" style="margin:-2px 0 8px">Marque las sustancias que se comercializan y escriba el valor de la dosis.</div>
-        <div class="sust-lista" id="listaSustancias"></div>
-        <div class="sust-elegidas" id="sustElegidas"></div>
-        <div class="error-msg">Escriba el nombre de la sustancia en “Otra”.</div>
+        <span class="label">Tipo de sustancia y valor de la dosis <span class="required">*</span></span>
+        <div class="hint multi">☑ Puede seleccionar varias: elija una de la lista, escriba el valor de la dosis y vuelva a abrirla para agregar otra.</div>
+        <div id="listaSustancias"></div>
+        <div class="error-msg">Agregue al menos una sustancia y escriba el valor de la dosis de cada una.</div>
     </div>
 
     <div class="field">
-        <span class="label">Vinculación de extranjeros de nacionalidad venezolana</span>
+        <span class="label">Vinculación de extranjeros de nacionalidad venezolana <span class="required">*</span></span>
         <div class="opciones" role="radiogroup">
-            <label class="opcion"><input type="radio" name="venezolanos" value="SI"><span>SI</span></label>
+            <label class="opcion"><input type="radio" name="venezolanos" value="SI" required><span>SI</span></label>
             <label class="opcion"><input type="radio" name="venezolanos" value="NO"><span>NO</span></label>
         </div>
+        <div class="error-msg">Seleccione SI o NO.</div>
     </div>
 
     <div class="field">
-        <label for="marquillas">Identificación de marquillas para la comercialización</label>
-        <textarea id="marquillas" name="marquillas" maxlength="1000"
+        <label for="marquillas">Identificación de marquillas para la comercialización <span class="required">*</span></label>
+        <textarea id="marquillas" name="marquillas" maxlength="1000" required
                   placeholder="Ej. Cartulina XXX, bolsa hermética, stickers XXX..."></textarea>
+        <div class="error-msg">Describa las marquillas usadas para la comercialización.</div>
     </div>
 
     <div class="field" id="campoFuncionarios">
@@ -510,14 +523,25 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     </div>
 </section>
 
-<!-- 3-5. FOTOGRAFÍAS -->
+<!-- 3. ACTORES RECONOCIDOS -->
+<section class="card">
+    <h2 class="section-title">3. Actores reconocidos en el punto</h2>
+    <div class="field" id="campoActores">
+        <div class="hint" style="margin:0 0 10px">Registre cada actor: nombre o alias y su fotografía <span class="required">*</span>. Si es posible, agregue también la foto de la cédula.</div>
+        <div id="listaActores" class="lista-actores"></div>
+        <button type="button" class="btn-secondary btn-agregar" id="btnAgregarActor">＋ Agregar otro actor</button>
+        <div class="error-msg">Cada actor debe tener nombre o alias y fotografía.</div>
+    </div>
+</section>
+
+<!-- 4-5. FOTOGRAFÍAS -->
 <div id="seccionesFotos"></div>
 
 <template id="tplFotos">
     <section class="card">
         <h2 class="section-title"></h2>
-        <div class="photo-area">
-            <p>Tome las fotografías con la cámara o selecciónelas de la galería. Se envían en su calidad original, sin límite.</p>
+        <div class="photo-area field">
+            <p>Tome las fotografías con la cámara o selecciónelas de la galería <span class="required">*</span>. Se envían en su calidad original, sin límite.</p>
             <div class="photo-buttons">
                 <button type="button" class="btn btn-primary" data-accion="camara">📷 Abrir cámara</button>
                 <label class="btn btn-secondary">🖼️ Seleccionar de galería
@@ -527,8 +551,30 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
             </div>
             <div class="contador"></div>
             <div class="photo-preview"></div>
+            <div class="error-msg">Agregue al menos una fotografía.</div>
         </div>
     </section>
+</template>
+
+<template id="tplActor">
+    <div class="actor">
+        <div class="actor-cab">
+            <span class="actor-num"></span>
+            <button type="button" class="quitar-actor" aria-label="Quitar actor" title="Quitar actor">✕</button>
+        </div>
+        <label class="lbl-alias">Nombre o alias del actor <span class="required">*</span></label>
+        <input type="text" class="a-alias" maxlength="120" autocomplete="off" placeholder="Ej. alias El Mono">
+        <div class="actor-fotos">
+            <div class="slot" data-tipo="actor">
+                <div class="slot-titulo">Foto del actor <span class="required">*</span></div>
+                <div class="slot-cuerpo"></div>
+            </div>
+            <div class="slot" data-tipo="cedula">
+                <div class="slot-titulo">Foto de la cédula <small>(si la tiene)</small></div>
+                <div class="slot-cuerpo"></div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <section class="card">
@@ -594,11 +640,12 @@ const CONFIG = {
     CLAVE_BORRADOR: "mebuc_caracterizacion_borrador"
 };
 
+// Secciones de fotos libres (varias fotos). Las del actor y su cédula van dentro de cada actor.
 const TIPOS_FOTO = [
-    { id: "actor",     titulo: "3. Fotografía del actor" },
     { id: "marquilla", titulo: "4. Fotografía de la marquilla" },
     { id: "punto",     titulo: "5. Fotografía del punto de expendio" }
 ];
+const TIPOS_SUBIDA = ["actor", "cedula", "marquilla", "punto"];
 
 const MUNICIPIOS = ["Bucaramanga","Floridablanca","Girón","Piedecuesta","Lebrija","Los Santos"];
 
@@ -606,7 +653,7 @@ const $ = id => document.getElementById(id);
 const form = $("encuestaForm");
 
 /* fotos[tipo] = [{ archivo: Blob ORIGINAL (sin tocar), mini: Blob|null, url, nombre, subida: { original, mini } }] */
-const fotos = {};
+const fotos = { actor: [], cedula: [] };   // actor[i] y cedula[i] corresponden al actor i (pueden ser null)
 let precisionGPS = null;
 let direccionGPS = "";       // lo que sugirió el GPS (queda como respaldo)
 let idRegistro = null;       // se conserva entre reintentos para no duplicar
@@ -685,19 +732,28 @@ async function crearMini(blob){
     }
 }
 
-async function agregarFoto(tipo, archivo, origen){
-    const mini = await crearMini(archivo);
-    const ext = (archivo.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
-    fotos[tipo].push({
+let fotosProcesando = 0;
+async function prepararFoto(archivo, origen){
+    fotosProcesando++;
+    let mini = null;
+    try{ mini = await crearMini(archivo); } finally { fotosProcesando--; }
+    return {
         archivo,
         mini,
         url: mini ? URL.createObjectURL(mini) : null,
-        nombre: archivo.name || `${tipo}_${fotos[tipo].length + 1}.${ext}`,
+        nombre: archivo.name || `foto_${Date.now()}.jpg`,
         origen,
         subida: { original: false, mini: false }
-    });
+    };
+}
+
+async function agregarFoto(tipo, archivo, origen){
+    const foto = await prepararFoto(archivo, origen);
+    fotos[tipo].push(foto);
     renderFotos(tipo);
-    return fotos[tipo][fotos[tipo].length - 1];
+    const area = document.querySelector(`section[data-tipo="${tipo}"] .photo-area`);
+    if (area) area.classList.remove("con-error");
+    return foto;
 }
 
 async function agregarArchivos(input, tipo){
@@ -755,33 +811,45 @@ function eliminarFoto(tipo, index){
 
 function limpiarFotos(){
     Object.keys(fotos).forEach(tipo => {
-        fotos[tipo].forEach(f => f.url && URL.revokeObjectURL(f.url));
+        fotos[tipo].forEach(f => f && f.url && URL.revokeObjectURL(f.url));
         fotos[tipo] = [];
-        renderFotos(tipo);
+        if (TIPOS_FOTO.some(t => t.id === tipo)) renderFotos(tipo);
     });
 }
 
 /* ============================
    CÁMARA EN VIVO (máxima resolución del dispositivo)
 ============================ */
-const cam = { stream: null, tipo: null, facing: "environment", capturador: null, ocupada: false };
+/* cam.destino = { titulo, agregar(archivo), conteo(), inputSistema, unaSola } */
+const cam = { stream: null, destino: null, facing: "environment", capturador: null, ocupada: false };
 
 function camaraDisponible(){
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext);
 }
 
-function usarCamaraSistema(tipo){
-    cerrarCamara();
-    document.querySelector(`section[data-tipo="${tipo}"] input[data-origen="camara-sistema"]`).click();
+function destinoSeccion(tipo){
+    return {
+        titulo: TIPOS_FOTO.find(t => t.id === tipo).titulo.replace(/^\d+\.\s*/, ""),
+        agregar: archivo => agregarFoto(tipo, archivo, "camara"),
+        conteo: () => fotos[tipo].length,
+        inputSistema: document.querySelector(`section[data-tipo="${tipo}"] input[data-origen="camara-sistema"]`),
+        unaSola: false
+    };
 }
 
-async function abrirCamara(tipo){
+function usarCamaraSistema(destino){
+    cerrarCamara();
+    if (destino && destino.inputSistema) destino.inputSistema.click();
+}
+
+async function abrirCamara(destino){
+    if (typeof destino === "string") destino = destinoSeccion(destino);
     if (!camaraDisponible()){
-        usarCamaraSistema(tipo);
+        usarCamaraSistema(destino);
         return;
     }
-    cam.tipo = tipo;
-    $("camTitulo").textContent = TIPOS_FOTO.find(t => t.id === tipo).titulo.replace(/^\d+\.\s*/, "");
+    cam.destino = destino;
+    $("camTitulo").textContent = destino.titulo;
     $("camMini").classList.remove("visible");
     $("camError").classList.remove("visible");
     actualizarConteoCamara();
@@ -834,9 +902,9 @@ function cerrarCamara(){
 }
 
 function actualizarConteoCamara(){
-    if (!cam.tipo) return;
-    const n = fotos[cam.tipo].length;
-    $("camConteo").textContent = `${n} ${n === 1 ? "foto" : "fotos"}`;
+    if (!cam.destino) return;
+    const n = cam.destino.conteo();
+    $("camConteo").textContent = cam.destino.unaSola ? "" : `${n} ${n === 1 ? "foto" : "fotos"}`;
 }
 
 /* Foto a la resolución completa del sensor (ImageCapture) o, si no existe, al máximo del video en calidad 100 % */
@@ -870,10 +938,11 @@ async function disparar(){
 
     try{
         const blob = await capturarFoto();
-        const archivo = new File([blob], `${cam.tipo}_${Date.now()}.${blob.type === "image/png" ? "png" : "jpg"}`, { type: blob.type || "image/jpeg" });
-        const foto = await agregarFoto(cam.tipo, archivo, "camara");
-        if (foto.url){ $("camMini").src = foto.url; $("camMini").classList.add("visible"); }
+        const archivo = new File([blob], `foto_${Date.now()}.${blob.type === "image/png" ? "png" : "jpg"}`, { type: blob.type || "image/jpeg" });
+        const foto = await cam.destino.agregar(archivo);
+        if (foto && foto.url){ $("camMini").src = foto.url; $("camMini").classList.add("visible"); }
         actualizarConteoCamara();
+        if (cam.destino.unaSola) setTimeout(cerrarCamara, 350);
     }catch(err){
         console.error(err);
         avisar("No se pudo tomar la fotografía. Intente de nuevo o use la cámara del teléfono.", { titulo: "Cámara", tipo: "aviso" });
@@ -889,7 +958,7 @@ $("camCambiar").addEventListener("click", () => {
     cam.facing = cam.facing === "environment" ? "user" : "environment";
     iniciarStream();
 });
-$("camSistema").addEventListener("click", () => usarCamaraSistema(cam.tipo));
+$("camSistema").addEventListener("click", () => usarCamaraSistema(cam.destino));
 document.addEventListener("keydown", e => {
     if ($("camara").hidden) return;
     if (e.key === "Escape") cerrarCamara();
@@ -1200,8 +1269,105 @@ async function buscarDireccion(lat, lon){
 
 
 /* ============================
-   SUSTANCIAS (lista con valor de la dosis)
+   LISTA DE SELECCIÓN MÚLTIPLE (compacta)
+   Un desplegable para elegir; cada opción elegida aparece como una fila (con valor si aplica).
 ============================ */
+const formatoPesos = n => Number(n).toLocaleString("es-CO");
+
+function crearListaMultiple({ contenedor, opciones, conValor = false, textoSelector, placeholderOtra, alCambiar }){
+    const sel = document.createElement("select");
+    sel.className = "selector-lista";
+    sel.innerHTML = `<option value="">${textoSelector}</option>` + opciones.map(([id, nombre, desc]) =>
+        `<option value="${id}">${nombre}${desc ? " — " + desc : ""}</option>`).join("");
+    const filas = document.createElement("div");
+    filas.className = "elegidas";
+    contenedor.append(sel, filas);
+
+    const datosOpcion = id => opciones.find(o => o[0] === id);
+    const actualizarOpciones = () => {
+        const usadas = new Set([...filas.children].map(f => f.dataset.id).filter(id => id !== "otra"));
+        [...sel.options].forEach(o => { if (o.value) o.disabled = usadas.has(o.value); });
+    };
+
+    function agregar(id, previo = {}, enfocar = true){
+        const op = datosOpcion(id);
+        if (!op) return;
+        const [, nombre, desc] = op;
+        const fila = document.createElement("div");
+        fila.className = "sust-fila" + (conValor ? " con-valor" : "") + (id === "otra" ? " con-otra" : "");
+        fila.dataset.id = id;
+        fila.innerHTML = `
+            ${id === "otra"
+                ? `<input class="s-otra" type="text" maxlength="80" placeholder="${placeholderOtra}" aria-label="${placeholderOtra}">`
+                : `<div class="nombre">${nombre}${desc ? `<small>${desc}</small>` : ""}</div>`}
+            ${conValor ? `<div class="precio"><input class="s-valor" type="text" inputmode="numeric" maxlength="12" placeholder="Valor dosis" aria-label="Valor de la dosis"></div>` : ""}
+            <button type="button" class="quitar-item" aria-label="Quitar">✕</button>`;
+        if (id === "otra") fila.querySelector(".s-otra").value = previo.otra || "";
+        if (conValor){
+            const v = fila.querySelector(".s-valor");
+            v.value = previo.valor ? formatoPesos(previo.valor) : "";
+            v.addEventListener("input", () => {
+                const n = v.value.replace(/\D/g, "");
+                v.value = n ? formatoPesos(Number(n)) : "";
+                if (n) v.classList.remove("invalido");
+            });
+        }
+        fila.querySelector(".quitar-item").addEventListener("click", () => { fila.remove(); actualizarOpciones(); alCambiar && alCambiar(); });
+        filas.appendChild(fila);
+        sel.classList.remove("invalido");
+        actualizarOpciones();
+        if (enfocar){
+            const foco = fila.querySelector(id === "otra" ? ".s-otra" : ".s-valor");
+            if (foco) setTimeout(() => foco.focus(), 60);
+        }
+        alCambiar && alCambiar();
+    }
+
+    sel.addEventListener("change", () => {
+        if (sel.value) agregar(sel.value);
+        sel.value = "";
+    });
+
+    return {
+        leer(){
+            return [...filas.children].map(f => {
+                const id = f.dataset.id;
+                const otra = id === "otra" ? f.querySelector(".s-otra").value.trim() : "";
+                const v = conValor ? Number((f.querySelector(".s-valor").value || "").replace(/\D/g, "")) : 0;
+                return { id, nombre: id === "otra" ? (otra || "Otra") : datosOpcion(id)[1], otra, valor: v > 0 ? v : null };
+            });
+        },
+        cargar(lista){
+            filas.replaceChildren();
+            (lista || []).forEach(x => agregar(x.id, x, false));
+            actualizarOpciones();
+        },
+        /* Devuelve el primer campo con problema (o el selector si no hay ninguno elegido), o null */
+        validar(){
+            let primero = null;
+            if (!filas.children.length) primero = sel;
+            [...filas.children].forEach(f => {
+                const otra = f.querySelector(".s-otra");
+                if (otra){ const mal = !otra.value.trim(); otra.classList.toggle("invalido", mal); if (mal && !primero) primero = otra; }
+                const v = f.querySelector(".s-valor");
+                if (v){ const mal = !v.value.replace(/\D/g, ""); v.classList.toggle("invalido", mal); if (mal && !primero) primero = v; }
+            });
+            sel.classList.toggle("invalido", !filas.children.length);
+            return primero;
+        },
+        selector: sel
+    };
+}
+
+const ESTRUCTURAS = [
+    ["tren_aragua",  "GDO Tren de Aragua",  ""],
+    ["los_del_sur",  "GDCO Los del Sur",     ""],
+    ["san_rafa",     "GDCO San Rafa",        ""],
+    ["villas",       "GDCO Villas",          ""],
+    ["claverianos",  "GDCO Claverianos",     ""],
+    ["otra",         "Otra",                 "escriba cuál"]
+];
+
 const SUSTANCIAS = [
     ["marihuana",   "Marihuana",            "Cannabis"],
     ["cripy",       "Cripy",                "Marihuana de alta potencia"],
@@ -1221,62 +1387,170 @@ const SUSTANCIAS = [
     ["pastillas",   "Pastillas",            "Clonazepam, rivotril, roche"],
     ["inhalantes",  "Inhalantes",           "Pegante, dick, solventes"],
     ["escopolamina","Escopolamina",         "Burundanga"],
-    ["otra",        "Otra",                 "Escriba cuál"]
+    ["otra",        "Otra",                 "escriba cuál"]
 ];
 
-function crearListaSustancias(){
-    const cont = $("listaSustancias");
-    cont.innerHTML = SUSTANCIAS.map(([id, nombre, desc]) => `
-        <label class="sust${id === "otra" ? " otra" : ""}">
-            <input type="checkbox" value="${id}">
-            <span>${nombre}<small>${desc}</small></span>
-        </label>`).join("");
-    cont.addEventListener("change", e => {
-        if (e.target.type === "checkbox"){ pintarSustanciasElegidas(); guardarBorrador(); }
+let listaEstructuras, listaSustancias;
+function crearListas(){
+    const quitarError = campo => () => $(campo).classList.remove("con-error");
+    listaEstructuras = crearListaMultiple({
+        contenedor: $("listaEstructuras"), opciones: ESTRUCTURAS, conValor: false,
+        textoSelector: "＋ Elegir estructura de la lista...", placeholderOtra: "¿Cuál estructura?",
+        alCambiar: () => { quitarError("campoEstructuras")(); guardarBorrador(); }
+    });
+    listaSustancias = crearListaMultiple({
+        contenedor: $("listaSustancias"), opciones: SUSTANCIAS, conValor: true,
+        textoSelector: "＋ Elegir sustancia de la lista...", placeholderOtra: "¿Cuál sustancia?",
+        alCambiar: () => { quitarError("campoSustancias")(); guardarBorrador(); }
     });
 }
+const leerSustancias = () => listaSustancias.leer();
+const marcarSustancias = lista => listaSustancias.cargar(lista);
 
-function pintarSustanciasElegidas(valores){
-    const previos = valores || leerSustancias();
-    const cont = $("sustElegidas");
-    const marcadas = [...$("listaSustancias").querySelectorAll("input:checked")].map(i => i.value);
-    cont.replaceChildren();
-    marcadas.forEach(id => {
-        const [, nombre] = SUSTANCIAS.find(x => x[0] === id);
-        const prev = previos.find(x => x.id === id) || {};
-        const fila = document.createElement("div");
-        fila.className = "sust-fila" + (id === "otra" ? " con-otra" : "");
-        fila.dataset.id = id;
-        fila.innerHTML = `
-            <div class="nombre">${nombre}</div>
-            ${id === "otra" ? `<input class="s-otra" type="text" maxlength="80" placeholder="¿Cuál sustancia?" aria-label="Nombre de la otra sustancia">` : ""}
-            <div class="precio"><input class="s-valor" type="text" inputmode="numeric" maxlength="12" placeholder="Valor dosis" aria-label="Valor de la dosis de ${nombre}"></div>`;
-        if (id === "otra") fila.querySelector(".s-otra").value = prev.otra || "";
-        fila.querySelector(".s-valor").value = prev.valor ? formatoPesos(prev.valor) : "";
-        fila.querySelector(".s-valor").addEventListener("input", e => {
-            const n = e.target.value.replace(/\D/g, "");
-            e.target.value = n ? formatoPesos(Number(n)) : "";
+/* ============================
+   ACTORES RECONOCIDOS (nombre/alias, foto del actor y foto de la cédula)
+============================ */
+const MAX_ACTORES = 15;
+
+function agregarActor(datos = {}, enfocar = false){
+    const lista = $("listaActores");
+    if (lista.children.length >= MAX_ACTORES) return;
+    const nodo = $("tplActor").content.firstElementChild.cloneNode(true);
+    nodo.querySelector(".a-alias").value = datos.alias || "";
+    nodo.querySelector(".a-alias").addEventListener("input", e => {
+        if (e.target.value.trim()) e.target.classList.remove("invalido");
+        if ($("campoActores").classList.contains("con-error")) validarActores();
+        guardarBorrador();
+    });
+    nodo.querySelector(".quitar-actor").addEventListener("click", () => quitarActor(nodo));
+    lista.appendChild(nodo);
+    fotos.actor.push(null);
+    fotos.cedula.push(null);
+    renderActores();
+    if (enfocar) nodo.querySelector(".a-alias").focus();
+}
+
+function indiceActor(nodo){ return [...$("listaActores").children].indexOf(nodo); }
+
+function quitarActor(nodo){
+    const i = indiceActor(nodo);
+    ["actor", "cedula"].forEach(t => { const f = fotos[t][i]; if (f && f.url) URL.revokeObjectURL(f.url); fotos[t].splice(i, 1); });
+    nodo.remove();
+    renderActores();
+    guardarBorrador();
+}
+
+async function ponerFotoSlot(tipo, i, archivo, origen){
+    const previa = fotos[tipo][i];
+    if (previa && previa.url) URL.revokeObjectURL(previa.url);
+    const foto = await prepararFoto(archivo, origen);
+    fotos[tipo][i] = foto;
+    renderActores();
+    if ($("campoActores").classList.contains("con-error")) validarActores();
+    return foto;
+}
+
+function renderActores(){
+    const nodos = [...$("listaActores").children];
+    nodos.forEach((nodo, i) => {
+        nodo.querySelector(".actor-num").textContent = `Actor ${i + 1}`;
+        nodo.querySelector(".quitar-actor").hidden = nodos.length === 1;
+        nodo.querySelectorAll(".slot").forEach(slot => {
+            const tipo = slot.dataset.tipo;
+            const foto = fotos[tipo][i];
+            const cuerpo = slot.querySelector(".slot-cuerpo");
+            cuerpo.replaceChildren();
+            if (foto){
+                slot.classList.remove("invalido");
+                if (foto.url){
+                    const img = document.createElement("img");
+                    img.src = foto.url; img.alt = tipo === "actor" ? `Foto del actor ${i + 1}` : `Cédula del actor ${i + 1}`;
+                    cuerpo.appendChild(img);
+                } else {
+                    const ph = document.createElement("div");
+                    ph.className = "slot-sinvista"; ph.textContent = "📷 Foto lista (vista previa no disponible)";
+                    cuerpo.appendChild(ph);
+                }
+                const meta = document.createElement("div");
+                meta.className = "slot-meta";
+                meta.textContent = `Original · ${tamanoLegible(foto.archivo.size)}${foto.subida.original ? " · ✓ enviada" : ""}`;
+                const acc = document.createElement("div");
+                acc.className = "slot-acciones";
+                const cambiar = document.createElement("button");
+                cambiar.type = "button"; cambiar.className = "btn-secondary"; cambiar.textContent = "Cambiar";
+                cambiar.disabled = foto.subida.original;
+                cambiar.addEventListener("click", () => abrirCamara(destinoSlot(tipo, nodo)));
+                const quitar = document.createElement("button");
+                quitar.type = "button"; quitar.className = "btn-secondary"; quitar.style.color = "var(--rojo)"; quitar.textContent = "Quitar";
+                quitar.disabled = foto.subida.original;
+                quitar.addEventListener("click", () => { const k = indiceActor(nodo); if (fotos[tipo][k]?.url) URL.revokeObjectURL(fotos[tipo][k].url); fotos[tipo][k] = null; renderActores(); });
+                acc.append(cambiar, quitar);
+                cuerpo.append(meta, acc);
+            } else {
+                const bot = document.createElement("div");
+                bot.className = "slot-botones";
+                bot.innerHTML = `
+                    <button type="button" class="btn-primary">📷 Cámara</button>
+                    <label class="btn btn-secondary">🖼️ Galería<input type="file" accept="image/*"></label>
+                    <input type="file" accept="image/*" capture="environment" hidden>`;
+                const [galeria, sistema] = bot.querySelectorAll("input[type=file]");
+                bot.querySelector("button").addEventListener("click", () => abrirCamara(destinoSlot(tipo, nodo, sistema)));
+                [galeria, sistema].forEach(inp => inp.addEventListener("change", async () => {
+                    const f = inp.files && inp.files[0];
+                    inp.value = "";
+                    if (f) await ponerFotoSlot(tipo, indiceActor(nodo), f, "galeria");
+                }));
+                cuerpo.appendChild(bot);
+            }
         });
-        cont.appendChild(fila);
-        if (id === "otra" && !valores && !prev.otra) setTimeout(() => fila.querySelector(".s-otra").focus(), 50);
     });
+    $("btnAgregarActor").hidden = nodos.length >= MAX_ACTORES;
 }
 
-const formatoPesos = n => Number(n).toLocaleString("es-CO");
-
-function leerSustancias(){
-    return [...$("sustElegidas").querySelectorAll(".sust-fila")].map(f => {
-        const id = f.dataset.id;
-        const nombreBase = SUSTANCIAS.find(x => x[0] === id)[1];
-        const otra = id === "otra" ? (f.querySelector(".s-otra").value.trim()) : "";
-        const v = Number((f.querySelector(".s-valor").value || "").replace(/\D/g, ""));
-        return { id, nombre: id === "otra" ? (otra || "Otra") : nombreBase, otra, valor: v > 0 ? v : null };
-    });
+function destinoSlot(tipo, nodo, inputSistema){
+    const sistema = inputSistema || (() => {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "image/*"; inp.setAttribute("capture", "environment");
+        inp.addEventListener("change", async () => { const f = inp.files && inp.files[0]; if (f) await ponerFotoSlot(tipo, indiceActor(nodo), f, "camara"); });
+        return inp;
+    })();
+    return {
+        titulo: `${tipo === "actor" ? "Foto del actor" : "Cédula del actor"} ${indiceActor(nodo) + 1}`,
+        agregar: archivo => ponerFotoSlot(tipo, indiceActor(nodo), archivo, "camara"),
+        conteo: () => 0,
+        inputSistema: sistema,
+        unaSola: true
+    };
 }
 
-function marcarSustancias(lista){
-    $("listaSustancias").querySelectorAll("input").forEach(i => { i.checked = lista.some(x => x.id === i.value); });
-    pintarSustanciasElegidas(lista);
+function leerActores(){
+    return [...$("listaActores").children].map((nodo, i) => ({
+        alias: nodo.querySelector(".a-alias").value.trim(),
+        foto: !!fotos.actor[i],
+        cedula: !!fotos.cedula[i]
+    }));
+}
+
+function validarActores(){
+    let primero = null;
+    [...$("listaActores").children].forEach((nodo, i) => {
+        const alias = nodo.querySelector(".a-alias");
+        const malAlias = !alias.value.trim();
+        alias.classList.toggle("invalido", malAlias);
+        if (malAlias && !primero) primero = alias;
+        const slot = nodo.querySelector('.slot[data-tipo="actor"]');
+        const malFoto = !fotos.actor[i];
+        slot.classList.toggle("invalido", malFoto);
+        if (malFoto && !primero) primero = slot.querySelector("button") || slot;
+    });
+    $("campoActores").classList.toggle("con-error", !!primero);
+    return primero;
+}
+
+function reiniciarActores(lista = []){
+    ["actor", "cedula"].forEach(t => { fotos[t].forEach(f => f && f.url && URL.revokeObjectURL(f.url)); fotos[t] = []; });
+    $("listaActores").replaceChildren();
+    if (lista.length) lista.forEach(a => agregarActor(a)); else agregarActor();
 }
 
 /* ============================
@@ -1460,15 +1734,25 @@ function validar(){
     const funcVacio = validarFuncionarios();
     if (funcVacio && !primero) primero = funcVacio;
 
-    const otra = $("sustElegidas").querySelector('.sust-fila[data-id="otra"] .s-otra');
-    const otraVacia = otra && !otra.value.trim();
-    if (otra) otra.classList.toggle("invalido", otraVacia);
-    $("campoSustancias").classList.toggle("con-error", !!otraVacia);
-    if (otraVacia && !primero) primero = otra;
+    [["campoEstructuras", listaEstructuras], ["campoSustancias", listaSustancias]].forEach(([campo, lista]) => {
+        const mal = lista.validar();
+        $(campo).classList.toggle("con-error", !!mal);
+        if (mal && !primero) primero = mal;
+    });
+
+    const actorMal = validarActores();
+    if (actorMal && !primero) primero = actorMal;
+
+    TIPOS_FOTO.forEach(({ id }) => {
+        const area = document.querySelector(`section[data-tipo="${id}"] .photo-area`);
+        const mal = fotos[id].length === 0;
+        area.classList.toggle("con-error", mal);
+        if (mal && !primero) primero = area.querySelector("button") || area;
+    });
 
     if (primero){
-        primero.closest(".field, .gps-box")?.scrollIntoView({ behavior: "smooth", block: "center" });
-        if (primero.type !== "radio") setTimeout(() => primero.focus({ preventScroll: true }), 300);
+        (primero.closest(".field, .gps-box, .actor") || primero).scrollIntoView({ behavior: "smooth", block: "center" });
+        if (primero.type !== "radio" && primero.focus) setTimeout(() => primero.focus({ preventScroll: true }), 300);
     }
     return !primero;
 }
@@ -1497,7 +1781,8 @@ function recolectarDatos(){
         precision_m:    precisionGPS,
         coordenadas:    $("coordenadas").value,
         tipo_expendio:  radio("tipoExpendio"),
-        actor:          $("actor").value.trim(),
+        estructuras_lista: listaEstructuras.leer(),
+        actores_lista:  leerActores(),
         sustancias_lista: leerSustancias(),
         correo_registra: $("correoRegistra").value.trim().toLowerCase(),
         nombre_registra: $("nombreRegistra").value.trim(),
@@ -1535,8 +1820,8 @@ async function guardarDatos(datos){
 /* Sube cada foto ORIGINAL (tal cual) y luego su miniatura. Se puede reanudar si se corta la conexión. */
 async function subirFotos(datos){
     const pendientes = [];
-    TIPOS_FOTO.forEach(({ id: tipo }) => fotos[tipo].forEach((f, i) => {
-        if (!f.subida.original || (f.mini && !f.subida.mini)) pendientes.push({ tipo, orden: i + 1, f });
+    TIPOS_SUBIDA.forEach(tipo => fotos[tipo].forEach((f, i) => {
+        if (f && (!f.subida.original || (f.mini && !f.subida.mini))) pendientes.push({ tipo, orden: i + 1, f });
     }));
     const total = pendientes.reduce((t, p) => t + (p.f.subida.original ? 0 : p.f.archivo.size) + (p.f.mini ? p.f.mini.size : 0), 0) || 1;
     let enviados = 0;
@@ -1570,12 +1855,12 @@ async function subirFotos(datos){
             enviados += f.mini.size;
         }
         avance(0);
-        renderFotos(tipo);
+        if (tipo === "actor" || tipo === "cedula") renderActores(); else renderFotos(tipo);
     }
 }
 
 function fotosPendientes(){
-    return Object.values(fotos).flat().filter(f => !f.subida.original).length;
+    return Object.values(fotos).flat().filter(f => f && !f.subida.original).length;
 }
 
 function mostrarEstado(texto, clase = ""){
@@ -1601,14 +1886,12 @@ form.addEventListener("submit", async e => {
         mostrarEstado("Abra el formulario desde la dirección del servidor (https://...), no como archivo.", "err");
         return;
     }
+    if (fotosProcesando > 0){
+        mostrarEstado("Procesando fotografías, un momento...");
+        for (let i = 0; i < 300 && fotosProcesando > 0; i++) await new Promise(r => setTimeout(r, 100));
+    }
     if (!validar()){
         mostrarEstado("Revise los campos marcados en rojo.", "err");
-        return;
-    }
-    if (!envio && fotos.punto.length === 0 &&
-        !(await confirmar("No ha agregado fotografías del punto de expendio. ¿Desea guardar de todas formas?", {
-            titulo: "Falta la foto del punto", tipo: "aviso", aceptar: "Guardar sin foto", cancelar: "Tomar foto"
-        }))){
         return;
     }
 
@@ -1651,6 +1934,8 @@ function reiniciarFormulario(conservarFuncionarios = false){
     $("correoRegistra").value = correoGuardado; $("nombreRegistra").value = nombreGuardado;
     mostrarIdentidad();
     marcarSustancias([]);
+    listaEstructuras.cargar([]);
+    reiniciarActores();
     reiniciarFuncionarios(patrulla);
     limpiarFotos();
     precisionGPS = null;
@@ -1669,7 +1954,7 @@ function reiniciarFormulario(conservarFuncionarios = false){
 /* ============================
    BORRADOR AUTOMÁTICO (solo texto)
 ============================ */
-const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","marquillas"];
+const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","marquillas"];
 let temporizador = null;
 
 function guardarBorrador(){
@@ -1677,7 +1962,8 @@ function guardarBorrador(){
     temporizador = setTimeout(() => {
         try{
             const b = { precision: precisionGPS, direccionGPS, tipoExpendio: radio("tipoExpendio"), venezolanos: radio("venezolanos"),
-                        funcionarios: leerFuncionarios(), sustancias: leerSustancias() };
+                        funcionarios: leerFuncionarios(), sustancias: leerSustancias(),
+                        estructuras: listaEstructuras.leer(), actores: leerActores().map(a => ({ alias: a.alias })) };
             CAMPOS_BORRADOR.forEach(id => b[id] = $(id).value);
             localStorage.setItem(CONFIG.CLAVE_BORRADOR, JSON.stringify(b));
         }catch(_){}
@@ -1689,10 +1975,13 @@ function restaurarBorrador(){
         const b = JSON.parse(localStorage.getItem(CONFIG.CLAVE_BORRADOR) || "null");
         if (!b) return;
         const hayFunc = Array.isArray(b.funcionarios) && b.funcionarios.some(f => f.zap || f.sigla || f.nombre);
-        const haySust = Array.isArray(b.sustancias) && b.sustancias.length > 0;
+        const haySust = (Array.isArray(b.sustancias) && b.sustancias.length > 0) || (Array.isArray(b.estructuras) && b.estructuras.length > 0)
+                        || (Array.isArray(b.actores) && b.actores.some(a => a.alias));
         if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos || hayFunc || haySust)) return;
         if (Array.isArray(b.funcionarios) && b.funcionarios.length) reiniciarFuncionarios(b.funcionarios);
         if (Array.isArray(b.sustancias) && b.sustancias.length) marcarSustancias(b.sustancias);
+        if (Array.isArray(b.estructuras) && b.estructuras.length) listaEstructuras.cargar(b.estructuras);
+        if (Array.isArray(b.actores) && b.actores.some(a => a.alias)) reiniciarActores(b.actores);
         CAMPOS_BORRADOR.forEach(id => { if (b[id] != null) $(id).value = b[id]; });
         ["tipoExpendio","venezolanos"].forEach(n => {
             const r = form.querySelector(`input[name="${n}"][value="${b[n]}"]`);
@@ -1715,7 +2004,9 @@ function borrarBorrador(){
    INICIO
 ============================ */
 crearSeccionesFotos();
-crearListaSustancias();
+crearListas();
+agregarActor();
+$("btnAgregarActor").addEventListener("click", () => { agregarActor({}, true); });
 cargarIdentidad();
 agregarFuncionario({ zap: "" });
 $("btnCambiarIdent").addEventListener("click", () => {
@@ -1768,9 +2059,7 @@ $("btnDireccion").addEventListener("click", () => {
 ["barrio","direccion"].forEach(id => $(id).addEventListener("input", () => $(id).classList.remove("autollenado")));
 
 form.addEventListener("input", e => {
-    if (e.target.classList.contains("s-otra") && e.target.value.trim()){
-        e.target.classList.remove("invalido"); $("campoSustancias").classList.remove("con-error");
-    }
+    if (e.target.classList.contains("s-otra") && e.target.value.trim()) e.target.classList.remove("invalido");
     if (e.target.closest(".func") && e.target.value.trim()){
         e.target.classList.remove("invalido");
         if (!$("listaFuncionarios").querySelector(".invalido")) $("campoFuncionarios").classList.remove("con-error");
@@ -1795,7 +2084,7 @@ $("btnLimpiar").addEventListener("click", async () => {
 });
 
 window.addEventListener("beforeunload", e => {
-    if (Object.values(fotos).some(l => l.length)){ e.preventDefault(); e.returnValue = ""; }
+    if (Object.values(fotos).some(l => l.some(Boolean))){ e.preventDefault(); e.returnValue = ""; }
 });
 </script>
 

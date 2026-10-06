@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS registros (
     funcionarios_json TEXT,                 -- [{ zap, sigla, grado, nombre }]
     correo_registra TEXT,                   -- correo de quien diligencia
     nombre_registra TEXT,                   -- nombre completo de quien diligencia
-    sustancias_json TEXT                    -- [{ id, nombre, otra, valor }]
+    sustancias_json TEXT,                   -- [{ id, nombre, otra, valor }]
+    estructuras_json TEXT,                  -- [{ id, nombre, otra }]
+    actores_json TEXT                       -- [{ alias, foto, cedula }]  (foto n = actor n)
 );
 
 CREATE INDEX IF NOT EXISTS idx_registros_recibido ON registros(recibido_en);
@@ -31,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_registros_municipio ON registros(municipio);
 CREATE TABLE IF NOT EXISTS fotos (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     registro_id   TEXT NOT NULL REFERENCES registros(id) ON DELETE CASCADE,
-    tipo          TEXT NOT NULL CHECK (tipo IN ('actor','marquilla','punto')),
+    tipo          TEXT NOT NULL CHECK (tipo IN ('actor','cedula','marquilla','punto')),
     orden         INTEGER NOT NULL,
     r2_key        TEXT NOT NULL UNIQUE,     -- foto original, tal como se tomó
     mini_key      TEXT,                     -- miniatura para el panel y el Excel
