@@ -1,0 +1,3 @@
+FORM_KEY=clave-campo-prueba
+ADMIN_KEY=clave-admin-prueba
+SIGNING_SECRET=cambie-esto-por-un-texto-aleatorio-largo

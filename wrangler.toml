@@ -1,0 +1,28 @@
+name = "mebuc-caracterizacion"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+# Formulario (index.html) y panel (panel.html) se sirven desde la carpeta public
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Base de datos con las respuestas
+[[d1_databases]]
+binding = "DB"
+database_name = "mebuc-caracterizacion"
+database_id = "REEMPLAZAR_CON_EL_ID_DE_D1"
+
+# Almacenamiento de fotografías
+[[r2_buckets]]
+binding = "FOTOS"
+bucket_name = "mebuc-fotos"
+
+[vars]
+# Días que duran los enlaces de descarga de fotos (Excel y panel)
+LINK_DIAS = "30"
+
+# Secretos (NO van aquí; se crean con `npx wrangler secret put NOMBRE`):
+#   FORM_KEY        código que usan los funcionarios en el formulario
+#   ADMIN_KEY       clave del panel de registros
+#   SIGNING_SECRET  texto aleatorio largo para firmar los enlaces de fotos

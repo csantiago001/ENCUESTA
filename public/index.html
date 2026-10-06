@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#003b73">
+<meta name="robots" content="noindex, nofollow">
+<title>Caracterización de Zonas de Expendios - MEBUC</title>
+
+<style>
+:root{
+    --azul:#003b73;
+    --azul2:#005ca9;
+    --azul3:#eaf3fb;
+    --gris:#667085;
+    --borde:#d9e0e7;
+    --verde:#16803c;
+    --rojo:#c62828;
+    --ambar:#b26a00;
+    --sombra:0 8px 30px rgba(0,0,0,.08);
+    --radio:12px;
+}
+*{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:#f3f6f9;
+    color:#17202a;
+    line-height:1.4;
+}
+
+/* ---------- Encabezado ---------- */
+.header{
+    background:linear-gradient(135deg,var(--azul),var(--azul2));
+    color:#fff;
+    padding:20px 16px;
+    padding-top:max(20px, env(safe-area-inset-top));
+    box-shadow:var(--sombra);
+}
+.header-container{ max-width:1050px; margin:auto; display:flex; align-items:center; gap:14px; }
+.logo{
+    flex:0 0 56px; height:56px; border-radius:50%; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--azul); font-weight:700; font-size:14px;
+}
+.header h1{ margin:0; font-size:20px; }
+.header p{ margin:4px 0 0; opacity:.9; font-size:14px; }
+
+/* ---------- Estructura ---------- */
+.container{ max-width:1050px; margin:22px auto; padding:0 16px; }
+.card{ background:#fff; border-radius:14px; padding:22px; margin-bottom:18px; box-shadow:var(--sombra); }
+.section-title{
+    font-size:17px; font-weight:700; color:var(--azul);
+    margin:0 0 18px; border-bottom:2px solid var(--azul3); padding-bottom:10px;
+}
+.field{ margin-bottom:18px; }
+.field:last-child{ margin-bottom:0; }
+label, .label{ display:block; font-weight:700; margin-bottom:7px; font-size:14px; }
+.required{ color:#d32f2f; }
+.hint{ font-size:12px; color:var(--gris); margin-top:5px; }
+
+input, textarea, select{
+    width:100%; padding:12px 13px; border:1px solid var(--borde); border-radius:9px;
+    font-size:16px; font-family:inherit; outline:none; background:#fff; color:inherit;
+}
+input:focus, textarea:focus, select:focus{ border-color:var(--azul2); box-shadow:0 0 0 3px rgba(0,92,169,.12); }
+input[readonly]{ background:#f5f7fa; color:#344054; }
+textarea{ min-height:96px; resize:vertical; }
+.autollenado{ background:#f1f8f3 !important; border-color:#9fd3ae !important; }
+
+.invalido{ border-color:var(--rojo) !important; box-shadow:0 0 0 3px rgba(198,40,40,.12) !important; }
+.error-msg{ color:var(--rojo); font-size:12px; margin-top:5px; display:none; }
+.field.con-error .error-msg{ display:block; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* ---------- Opciones ---------- */
+.opciones{ display:flex; gap:10px; flex-wrap:wrap; }
+.opcion{ flex:1 1 120px; position:relative; margin:0; font-weight:600; }
+.opcion input{ position:absolute; opacity:0; pointer-events:none; }
+.opcion span{
+    display:block; text-align:center; padding:12px; border:1px solid var(--borde);
+    border-radius:9px; cursor:pointer; user-select:none;
+}
+.opcion input:checked + span{ background:var(--azul); border-color:var(--azul); color:#fff; }
+.opcion input:focus-visible + span{ box-shadow:0 0 0 3px rgba(0,92,169,.25); }
+
+/* ---------- GPS ---------- */
+.gps-box{
+    background:var(--azul3); border:1px solid #c9dff4; border-radius:var(--radio);
+    padding:16px; margin-bottom:18px;
+}
+.gps-row{ display:flex; gap:10px; align-items:center; margin:10px 0 4px; flex-wrap:wrap; }
+.estado{ font-size:14px; }
+.estado.ok{ color:var(--verde); font-weight:700; }
+.estado.warn{ color:var(--ambar); font-weight:700; }
+.estado.err{ color:var(--rojo); font-weight:700; }
+.coordinates{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+.mapa-link{ font-size:13px; color:var(--azul2); }
+
+/* ---------- Botones ---------- */
+button, .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border:none; border-radius:9px; padding:12px 18px; font-size:14px; font-weight:700;
+    font-family:inherit; cursor:pointer; margin:0; text-decoration:none; min-height:44px;
+}
+button:disabled{ opacity:.6; cursor:not-allowed; }
+.btn-primary{ background:var(--azul); color:#fff; }
+.btn-primary:hover:not(:disabled){ background:#002d59; }
+.btn-gps{ background:var(--verde); color:#fff; }
+.btn-secondary{ background:#eef2f6; color:#263238; }
+.btn-secondary:hover{ background:#e2e8ef; }
+.btn-chico{ min-height:38px; padding:8px 14px; font-size:13px; }
+
+/* ---------- Fotos ---------- */
+.photo-area{
+    border:2px dashed #b9c5d1; border-radius:var(--radio); padding:16px;
+    text-align:center; background:#fafcfe;
+}
+.photo-area p{ margin:0 0 12px; font-size:14px; color:var(--gris); }
+.photo-buttons{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.photo-buttons input[type=file]{ display:none; }
+.contador{ font-size:12px; color:var(--gris); margin-top:10px; }
+.photo-preview{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:12px; margin-top:14px;
+}
+.photo-card{ border-radius:10px; overflow:hidden; border:1px solid var(--borde); background:#fff; }
+.photo-card img{ width:100%; height:140px; object-fit:cover; display:block; }
+.photo-card .peso{ font-size:11px; color:var(--gris); padding:4px; }
+.photo-card button{
+    width:100%; border-radius:0; background:#fff; color:var(--rojo);
+    border-top:1px solid var(--borde); min-height:38px;
+}
+
+/* ---------- Cámara en vivo ---------- */
+.camara{
+    position:fixed; inset:0; z-index:100; background:#000; color:#fff;
+    display:flex; flex-direction:column;
+}
+.camara[hidden]{ display:none; }
+.camara-top{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top));
+    font-size:14px; font-weight:700; background:rgba(0,0,0,.6);
+}
+.camara-visor{ position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; }
+.camara video{ width:100%; height:100%; object-fit:contain; background:#000; }
+.camara-flash{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .15s; }
+.camara-flash.on{ opacity:.8; transition:none; }
+.camara-error{
+    position:absolute; left:16px; right:16px; top:50%; transform:translateY(-50%);
+    text-align:center; font-size:15px; display:none;
+}
+.camara-error.visible{ display:block; }
+.camara-error button{ margin-top:14px; }
+.camara-acciones{
+    display:flex; align-items:center; justify-content:space-around; gap:10px;
+    padding:18px 16px; padding-bottom:max(18px, env(safe-area-inset-bottom));
+    background:rgba(0,0,0,.6);
+}
+.cam-btn{ background:rgba(255,255,255,.15); color:#fff; min-width:96px; }
+.cam-disparo{
+    width:74px; height:74px; border-radius:50%; padding:0;
+    background:#fff; border:5px solid rgba(255,255,255,.45); background-clip:padding-box;
+}
+.cam-disparo:active{ transform:scale(.94); }
+.cam-miniatura{
+    width:48px; height:48px; border-radius:8px; object-fit:cover; border:2px solid #fff;
+    visibility:hidden;
+}
+.cam-miniatura.visible{ visibility:visible; }
+
+/* ---------- Avisos ---------- */
+.notice{
+    background:#fff8e1; border:1px solid #ffe082; border-radius:10px;
+    padding:14px; font-size:13px; margin-bottom:18px;
+}
+.borrador{
+    display:none; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px;
+    padding:12px 14px; font-size:13px; margin-bottom:18px;
+    align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+}
+.borrador.visible{ display:flex; }
+
+/* ---------- Envío ---------- */
+.acciones{ display:flex; flex-direction:column; gap:10px; }
+.submit{ width:100%; font-size:16px; padding:16px; }
+.status{ margin:6px 0 0; font-size:14px; min-height:20px; color:var(--gris); }
+.status.ok{ color:var(--verde); font-weight:700; }
+.status.err{ color:var(--rojo); font-weight:700; }
+.progreso{ height:6px; background:#e4e9ef; border-radius:3px; overflow:hidden; display:none; }
+.progreso.visible{ display:block; }
+.progreso div{ height:100%; width:0; background:var(--azul2); transition:width .2s; }
+.spinner{
+    width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+    border-radius:50%; animation:giro .8s linear infinite; display:none;
+}
+.cargando .spinner{ display:inline-block; }
+@keyframes giro{ to{ transform:rotate(360deg); } }
+
+.footer{
+    text-align:center; color:#7a8691; font-size:12px; padding:20px;
+    padding-bottom:max(20px, env(safe-area-inset-bottom));
+}
+
+@media (max-width:700px){
+    .grid, .coordinates{ grid-template-columns:1fr; }
+    .card{ padding:18px; }
+    .header h1{ font-size:18px; }
+    .gps-row > button{ width:100%; }
+    .photo-buttons .btn{ flex:1 1 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="header-container">
+        <div class="logo" aria-hidden="true">MEBUC</div>
+        <div>
+            <h1>Caracterización de Zonas de Expendios</h1>
+            <p>Policía Nacional de Colombia · MEBUC</p>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+
+<div class="notice">
+    <strong>Registro de caracterización</strong><br>
+    Diligencie la información correspondiente al punto identificado. Con el botón GPS se capturan
+    las coordenadas y se sugiere el barrio y la dirección; verifíquelos antes de guardar.
+</div>
+
+<div id="avisoBorrador" class="borrador" role="status">
+    <span>Se recuperó un borrador sin enviar (las fotografías no se conservan).</span>
+    <button type="button" class="btn-secondary btn-chico" id="btnDescartar">Descartar borrador</button>
+</div>
+
+<form id="encuestaForm" novalidate>
+
+<!-- 1. INFORMACIÓN GEOGRÁFICA -->
+<section class="card">
+    <h2 class="section-title">1. Información geográfica</h2>
+
+    <div class="gps-box field" id="campoGPS">
+        <span class="label">Ubicación del punto <span class="required">*</span></span>
+
+        <div class="gps-row">
+            <button type="button" class="btn-gps" id="btnGPS">📍 Obtener ubicación y dirección</button>
+            <span id="gpsEstado" class="estado" aria-live="polite">Ubicación no capturada</span>
+        </div>
+
+        <div class="coordinates">
+            <div>
+                <label for="latitud">Latitud</label>
+                <input id="latitud" name="latitud" inputmode="decimal" autocomplete="off" placeholder="7.11916111">
+            </div>
+            <div>
+                <label for="longitud">Longitud</label>
+                <input id="longitud" name="longitud" inputmode="decimal" autocomplete="off" placeholder="-73.12742222">
+            </div>
+        </div>
+
+        <div>
+            <label for="coordenadas">Coordenadas (GMS)</label>
+            <input id="coordenadas" name="coordenadas" readonly placeholder="7°07'08.98&quot;N 73°07'38.72&quot;W">
+            <div class="hint">Se calculan solas. Sin señal GPS, escriba latitud y longitud y use “Buscar dirección”.</div>
+            <div class="gps-row">
+                <button type="button" class="btn-secondary btn-chico" id="btnDireccion" hidden>🔎 Buscar dirección de estas coordenadas</button>
+                <a id="mapaLink" class="mapa-link" href="#" target="_blank" rel="noopener" hidden>Verificar en el mapa ↗</a>
+            </div>
+        </div>
+        <div class="error-msg">Capture la ubicación o ingrese coordenadas válidas.</div>
+    </div>
+
+    <div class="field">
+        <label for="municipio">Municipio de caracterización <span class="required">*</span></label>
+        <select id="municipio" name="municipio" required>
+            <option value="">Seleccione...</option>
+            <option>Bucaramanga</option>
+            <option>Floridablanca</option>
+            <option>Girón</option>
+            <option>Piedecuesta</option>
+            <option>Lebrija</option>
+            <option>Los Santos</option>
+        </select>
+        <div class="error-msg">Seleccione el municipio.</div>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label for="barrio">Barrio <span class="required">*</span></label>
+            <input id="barrio" name="barrio" type="text" autocomplete="off" maxlength="120"
+                   placeholder="Ej. Mutis" required>
+            <div class="error-msg">Ingrese el barrio.</div>
+        </div>
+        <div class="field">
+            <label for="direccion">Dirección (calle y carrera) <span class="required">*</span></label>
+            <input id="direccion" name="direccion" type="text" autocomplete="off" maxlength="200"
+                   placeholder="Ej. Carrera 27 con Calle 45" required>
+            <div class="error-msg">Ingrese la dirección.</div>
+        </div>
+    </div>
+    <div id="dirEstado" class="hint estado" aria-live="polite">Puede escribir el barrio y la dirección o llenarlos con el botón GPS.</div>
+</section>
+
+<!-- 2. CARACTERIZACIÓN -->
+<section class="card">
+    <h2 class="section-title">2. Caracterización del expendio</h2>
+
+    <div class="field">
+        <span class="label">Tipo de expendio <span class="required">*</span></span>
+        <div class="opciones" role="radiogroup">
+            <label class="opcion"><input type="radio" name="tipoExpendio" value="Móvil" required><span>Móvil</span></label>
+            <label class="opcion"><input type="radio" name="tipoExpendio" value="Fijo"><span>Fijo</span></label>
+        </div>
+        <div class="error-msg">Seleccione el tipo de expendio.</div>
+    </div>
+
+    <div class="field">
+        <label for="actor">Estructura asociada al expendio y actor reconocido</label>
+        <textarea id="actor" name="actor" maxlength="1000" placeholder="Ej. Los del Sur, alias Pepito..."></textarea>
+    </div>
+
+    <div class="field">
+        <label for="sustancia">Tipo de sustancia y valor de la dosis</label>
+        <textarea id="sustancia" name="sustancia" maxlength="1000"
+                  placeholder="Ej. Marihuana ($), cocaína ($), bazuco ($), tusi ($)"></textarea>
+    </div>
+
+    <div class="field">
+        <span class="label">Vinculación de extranjeros de nacionalidad venezolana</span>
+        <div class="opciones" role="radiogroup">
+            <label class="opcion"><input type="radio" name="venezolanos" value="SI"><span>SI</span></label>
+            <label class="opcion"><input type="radio" name="venezolanos" value="NO"><span>NO</span></label>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="marquillas">Identificación de marquillas para la comercialización</label>
+        <textarea id="marquillas" name="marquillas" maxlength="1000"
+                  placeholder="Ej. Cartulina XXX, bolsa hermética, stickers XXX..."></textarea>
+    </div>
+
+    <div class="field">
+        <label for="funcionarios">ZAP y nombre de los funcionarios <span class="required">*</span></label>
+        <textarea id="funcionarios" name="funcionarios" maxlength="1000" required
+                  placeholder="Ingrese ZAP y funcionarios relacionados"></textarea>
+        <div class="error-msg">Indique la ZAP y los funcionarios.</div>
+    </div>
+</section>
+
+<!-- 3-5. FOTOGRAFÍAS -->
+<div id="seccionesFotos"></div>
+
+<template id="tplFotos">
+    <section class="card">
+        <h2 class="section-title"></h2>
+        <div class="photo-area">
+            <p>Toque “Abrir cámara” para tomar las fotografías en el momento, o seleccione existentes.</p>
+            <div class="photo-buttons">
+                <button type="button" class="btn btn-primary" data-accion="camara">📷 Abrir cámara</button>
+                <label class="btn btn-secondary">🖼️ Seleccionar de galería
+                    <input type="file" accept="image/*" multiple data-origen="galeria">
+                </label>
+                <input type="file" accept="image/*" capture="environment" data-origen="camara-sistema" hidden>
+            </div>
+            <div class="contador"></div>
+            <div class="photo-preview"></div>
+        </div>
+    </section>
+</template>
+
+<section class="card">
+    <div class="field">
+        <label for="claveAcceso">Código de acceso de la unidad <span class="required">*</span></label>
+        <input id="claveAcceso" type="password" autocomplete="off" required>
+        <div class="hint">Se recuerda en este dispositivo para los siguientes registros.</div>
+        <div class="error-msg">Ingrese un código de acceso válido.</div>
+    </div>
+
+    <div class="acciones">
+        <button type="submit" class="btn-primary submit" id="btnGuardar">
+            <span class="spinner"></span>
+            <span class="texto">GUARDAR CARACTERIZACIÓN</span>
+        </button>
+        <div class="progreso" id="progreso"><div></div></div>
+        <button type="button" class="btn-secondary" id="btnLimpiar">Limpiar formulario</button>
+    </div>
+    <p id="formStatus" class="status" aria-live="polite"></p>
+</section>
+
+</form>
+</main>
+
+<footer class="footer">Policía Nacional de Colombia · MEBUC</footer>
+
+<!-- Cámara en vivo -->
+<div id="camara" class="camara" hidden role="dialog" aria-modal="true" aria-labelledby="camTitulo">
+    <div class="camara-top">
+        <span id="camTitulo">Cámara</span>
+        <span id="camConteo"></span>
+    </div>
+    <div class="camara-visor">
+        <video id="camVideo" playsinline autoplay muted></video>
+        <div class="camara-flash" id="camFlash"></div>
+        <div class="camara-error" id="camError">
+            <div id="camErrorTexto"></div>
+            <button type="button" class="btn-primary" id="camSistema">Usar la cámara del teléfono</button>
+        </div>
+    </div>
+    <div class="camara-acciones">
+        <button type="button" class="cam-btn" id="camCerrar">Listo</button>
+        <button type="button" class="cam-disparo" id="camDisparar" aria-label="Tomar fotografía"></button>
+        <div style="display:flex;align-items:center;gap:10px">
+            <img id="camMini" class="cam-miniatura" alt="Última fotografía">
+            <button type="button" class="cam-btn" id="camCambiar" aria-label="Cambiar cámara">⟲</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================
+   CONFIGURACIÓN
+============================ */
+const CONFIG = {
+    API_URL: "/api/caracterizaciones",   // mismo dominio del Worker
+    MAX_FOTOS_POR_TIPO: 6,
+    MAX_LADO_PX: 1600,
+    CALIDAD_JPEG: 0.8,
+    PRECISION_ACEPTABLE_M: 30,
+    CLAVE_BORRADOR: "mebuc_caracterizacion_borrador",
+    CLAVE_ACCESO: "mebuc_codigo_acceso"
+};
+
+const TIPOS_FOTO = [
+    { id: "actor",     titulo: "3. Fotografía del actor" },
+    { id: "marquilla", titulo: "4. Fotografía de la marquilla" },
+    { id: "punto",     titulo: "5. Fotografía del punto de expendio" }
+];
+
+const MUNICIPIOS = ["Bucaramanga","Floridablanca","Girón","Piedecuesta","Lebrija","Los Santos"];
+
+const $ = id => document.getElementById(id);
+const form = $("encuestaForm");
+
+const fotos = {};            // fotos[tipo] = [{ blob, url, nombre }]
+let precisionGPS = null;
+let direccionGPS = "";       // lo que sugirió el GPS (queda como respaldo)
+let idRegistro = null;       // se conserva entre reintentos para no duplicar
+
+/* ============================
+   UTILIDADES
+============================ */
+function setEstado(el, texto, clase = ""){
+    el.textContent = texto;
+    el.className = el.className.replace(/\b(ok|warn|err)\b/g, "").trim() + (clase ? " " + clase : "");
+}
+const normalizar = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+function fetchConTiempo(url, opciones = {}, ms = 10000){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...opciones, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
+/* ============================
+   SECCIONES DE FOTOS
+============================ */
+function crearSeccionesFotos(){
+    const tpl = $("tplFotos");
+    const destino = $("seccionesFotos");
+
+    TIPOS_FOTO.forEach(({ id, titulo }) => {
+        fotos[id] = [];
+        const nodo = tpl.content.cloneNode(true);
+        const seccion = nodo.querySelector("section");
+        seccion.dataset.tipo = id;
+        nodo.querySelector(".section-title").textContent = titulo;
+
+        nodo.querySelector('[data-accion="camara"]').addEventListener("click", () => abrirCamara(id));
+        nodo.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener("change", () => agregarArchivos(input, id));
+        });
+
+        destino.appendChild(nodo);
+        renderFotos(id);
+    });
+}
+
+function cupo(tipo){ return CONFIG.MAX_FOTOS_POR_TIPO - fotos[tipo].length; }
+
+function agregarBlob(tipo, blob){
+    if (cupo(tipo) <= 0) return false;
+    fotos[tipo].push({
+        blob,
+        url: URL.createObjectURL(blob),
+        nombre: `${tipo}_${fotos[tipo].length + 1}.jpg`
+    });
+    renderFotos(tipo);
+    return true;
+}
+
+async function agregarArchivos(input, tipo){
+    const archivos = Array.from(input.files || []);
+    input.value = "";
+    if (!archivos.length) return;
+
+    const disponibles = cupo(tipo);
+    if (disponibles <= 0){
+        mostrarEstado(`Máximo ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías por sección.`, "err");
+        return;
+    }
+    if (archivos.length > disponibles){
+        mostrarEstado(`Solo se agregaron ${disponibles} fotografía(s); el máximo es ${CONFIG.MAX_FOTOS_POR_TIPO}.`, "err");
+    }
+    for (const archivo of archivos.slice(0, disponibles)){
+        if (!archivo.type.startsWith("image/")) continue;
+        try{
+            agregarBlob(tipo, await comprimirImagen(archivo));
+        }catch(err){
+            console.error(err);
+            mostrarEstado("No se pudo procesar una de las imágenes.", "err");
+        }
+    }
+}
+
+function dibujarEnJpeg(fuente, anchoOrig, altoOrig){
+    const escala = Math.min(1, CONFIG.MAX_LADO_PX / Math.max(anchoOrig, altoOrig));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(anchoOrig * escala);
+    canvas.height = Math.round(altoOrig * escala);
+    canvas.getContext("2d").drawImage(fuente, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) =>
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("toBlob falló")), "image/jpeg", CONFIG.CALIDAD_JPEG)
+    );
+}
+
+function comprimirImagen(archivo){
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const urlTmp = URL.createObjectURL(archivo);
+        img.onload = () => {
+            URL.revokeObjectURL(urlTmp);
+            dibujarEnJpeg(img, img.naturalWidth, img.naturalHeight).then(resolve, reject);
+        };
+        img.onerror = () => { URL.revokeObjectURL(urlTmp); reject(new Error("Imagen no válida")); };
+        img.src = urlTmp;
+    });
+}
+
+function renderFotos(tipo){
+    const seccion = document.querySelector(`section[data-tipo="${tipo}"]`);
+    const contenedor = seccion.querySelector(".photo-preview");
+    contenedor.replaceChildren();
+
+    fotos[tipo].forEach((foto, index) => {
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        const img = document.createElement("img");
+        img.src = foto.url;
+        img.alt = `Fotografía ${index + 1}`;
+        const peso = document.createElement("div");
+        peso.className = "peso";
+        peso.textContent = `${(foto.blob.size / 1024).toFixed(0)} KB`;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Eliminar";
+        btn.addEventListener("click", () => eliminarFoto(tipo, index));
+        card.append(img, peso, btn);
+        contenedor.appendChild(card);
+    });
+
+    const n = fotos[tipo].length;
+    seccion.querySelector(".contador").textContent = `${n} de ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías`;
+    seccion.querySelectorAll(".photo-buttons .btn").forEach(b => b.style.opacity = n >= CONFIG.MAX_FOTOS_POR_TIPO ? ".5" : "");
+}
+
+function eliminarFoto(tipo, index){
+    const [foto] = fotos[tipo].splice(index, 1);
+    if (foto) URL.revokeObjectURL(foto.url);
+    renderFotos(tipo);
+}
+
+function limpiarFotos(){
+    Object.keys(fotos).forEach(tipo => {
+        fotos[tipo].forEach(f => URL.revokeObjectURL(f.url));
+        fotos[tipo] = [];
+        renderFotos(tipo);
+    });
+}
+
+/* ============================
+   CÁMARA EN VIVO
+============================ */
+const cam = { stream: null, tipo: null, facing: "environment", miniUrl: null };
+
+function camaraDisponible(){
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext);
+}
+
+function usarCamaraSistema(tipo){
+    cerrarCamara();
+    document.querySelector(`section[data-tipo="${tipo}"] input[data-origen="camara-sistema"]`).click();
+}
+
+async function abrirCamara(tipo){
+    if (cupo(tipo) <= 0){
+        mostrarEstado(`Máximo ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías por sección.`, "err");
+        return;
+    }
+    if (!camaraDisponible()){
+        usarCamaraSistema(tipo);
+        return;
+    }
+    cam.tipo = tipo;
+    $("camTitulo").textContent = TIPOS_FOTO.find(t => t.id === tipo).titulo.replace(/^\d+\.\s*/, "");
+    $("camMini").classList.remove("visible");
+    $("camError").classList.remove("visible");
+    actualizarConteoCamara();
+    $("camara").hidden = false;
+    document.body.style.overflow = "hidden";
+    await iniciarStream();
+}
+
+async function iniciarStream(){
+    detenerStream();
+    $("camError").classList.remove("visible");
+    $("camDisparar").disabled = true;
+    try{
+        cam.stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: cam.facing }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false
+        });
+        const video = $("camVideo");
+        video.srcObject = cam.stream;
+        await video.play().catch(() => {});
+        $("camDisparar").disabled = false;
+    }catch(err){
+        console.error(err);
+        const mensajes = {
+            NotAllowedError: "Se negó el permiso de la cámara. Actívelo en la configuración del navegador para este sitio.",
+            NotFoundError: "No se encontró una cámara en este dispositivo.",
+            NotReadableError: "La cámara está siendo usada por otra aplicación.",
+            OverconstrainedError: "La cámara seleccionada no está disponible."
+        };
+        $("camErrorTexto").textContent = mensajes[err.name] || "No fue posible abrir la cámara.";
+        $("camError").classList.add("visible");
+    }
+}
+
+function detenerStream(){
+    if (cam.stream){
+        cam.stream.getTracks().forEach(t => t.stop());
+        cam.stream = null;
+    }
+    $("camVideo").srcObject = null;
+}
+
+function cerrarCamara(){
+    detenerStream();
+    $("camara").hidden = true;
+    document.body.style.overflow = "";
+    if (cam.miniUrl){ cam.miniUrl = null; }
+}
+
+function actualizarConteoCamara(){
+    if (!cam.tipo) return;
+    $("camConteo").textContent = `${fotos[cam.tipo].length} / ${CONFIG.MAX_FOTOS_POR_TIPO}`;
+}
+
+async function disparar(){
+    const video = $("camVideo");
+    if (!video.videoWidth || cupo(cam.tipo) <= 0) return;
+
+    const flash = $("camFlash");
+    flash.classList.add("on");
+    setTimeout(() => flash.classList.remove("on"), 60);
+    if (navigator.vibrate) navigator.vibrate(30);
+
+    try{
+        const blob = await dibujarEnJpeg(video, video.videoWidth, video.videoHeight);
+        agregarBlob(cam.tipo, blob);
+        const ultima = fotos[cam.tipo][fotos[cam.tipo].length - 1];
+        $("camMini").src = ultima.url;
+        $("camMini").classList.add("visible");
+        actualizarConteoCamara();
+        if (cupo(cam.tipo) <= 0){
+            setTimeout(cerrarCamara, 400);
+            mostrarEstado(`Se completaron las ${CONFIG.MAX_FOTOS_POR_TIPO} fotografías de la sección.`);
+        }
+    }catch(err){
+        console.error(err);
+    }
+}
+
+$("camDisparar").addEventListener("click", disparar);
+$("camCerrar").addEventListener("click", cerrarCamara);
+$("camCambiar").addEventListener("click", () => {
+    cam.facing = cam.facing === "environment" ? "user" : "environment";
+    iniciarStream();
+});
+$("camSistema").addEventListener("click", () => usarCamaraSistema(cam.tipo));
+document.addEventListener("keydown", e => {
+    if ($("camara").hidden) return;
+    if (e.key === "Escape") cerrarCamara();
+    if (e.key === " " || e.key === "Enter"){ e.preventDefault(); disparar(); }
+});
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden && !$("camara").hidden) detenerStream();
+    else if (!document.hidden && !$("camara").hidden && !cam.stream) iniciarStream();
+});
+
+/* ============================
+   GPS
+============================ */
+function obtenerGPS(){
+    const estado = $("gpsEstado");
+    const btn = $("btnGPS");
+
+    if (!navigator.geolocation){
+        setEstado(estado, "Este dispositivo no permite obtener GPS. Ingrese las coordenadas manualmente.", "err");
+        return;
+    }
+    if (!window.isSecureContext){
+        setEstado(estado, "El GPS requiere que la página se abra con HTTPS.", "err");
+        return;
+    }
+
+    btn.disabled = true;
+    setEstado(estado, "Obteniendo ubicación...");
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            btn.disabled = false;
+            const { latitude, longitude, accuracy } = pos.coords;
+            precisionGPS = Math.round(accuracy);
+            $("latitud").value = latitude.toFixed(8);
+            $("longitud").value = longitude.toFixed(8);
+            actualizarCoordenadas();
+            $("campoGPS").classList.remove("con-error");
+
+            if (accuracy > CONFIG.PRECISION_ACEPTABLE_M){
+                setEstado(estado, `⚠ Precisión baja (±${precisionGPS} m). Intente de nuevo a cielo abierto.`, "warn");
+            } else {
+                setEstado(estado, `✓ Ubicación obtenida (±${precisionGPS} m)`, "ok");
+            }
+            guardarBorrador();
+            buscarDireccion(latitude, longitude);
+        },
+        err => {
+            btn.disabled = false;
+            const mensajes = {
+                1: "Permiso de ubicación denegado. Actívelo en la configuración del navegador.",
+                2: "No hay señal de ubicación disponible.",
+                3: "Se agotó el tiempo de espera. Intente de nuevo."
+            };
+            setEstado(estado, mensajes[err.code] || "No fue posible obtener la ubicación.", "err");
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+}
+
+function coordenadasValidas(){
+    const lat = parseFloat($("latitud").value.replace(",", "."));
+    const lon = parseFloat($("longitud").value.replace(",", "."));
+    const ok = Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+    return ok ? { lat, lon } : null;
+}
+
+function actualizarCoordenadas(){
+    const c = coordenadasValidas();
+    const link = $("mapaLink");
+    if (c){
+        $("coordenadas").value = convertirDMS(c.lat, c.lon);
+        link.href = `https://www.google.com/maps?q=${c.lat},${c.lon}`;
+        link.hidden = false;
+        $("btnDireccion").hidden = false;
+    } else {
+        $("coordenadas").value = "";
+        link.hidden = true;
+        $("btnDireccion").hidden = true;
+    }
+}
+
+function convertirDMS(lat, lon){
+    function convertir(valor, positivo, negativo){
+        const dir = valor >= 0 ? positivo : negativo;
+        valor = Math.abs(valor);
+        let grados = Math.floor(valor);
+        let minutos = Math.floor((valor - grados) * 60);
+        let segundos = +(((valor - grados) * 60 - minutos) * 60).toFixed(2);
+        if (segundos >= 60){ segundos = 0; minutos++; }
+        if (minutos >= 60){ minutos = 0; grados++; }
+        return `${grados}°${String(minutos).padStart(2, "0")}'${segundos.toFixed(2).padStart(5, "0")}"${dir}`;
+    }
+    return `${convertir(lat, "N", "S")} ${convertir(lon, "E", "W")}`;
+}
+
+/* ============================
+   DIRECCIÓN DESDE GPS
+   (OpenStreetMap: Nominatim + Overpass)
+============================ */
+const TIPOS_VIA = /^(calle|carrera|avenida|diagonal|transversal|circular|autopista|via|vía|kr|cra|cl)\b/i;
+const VIAS_IGNORADAS = new Set(["footway","path","steps","cycleway","pedestrian","track","bridleway","corridor","elevator","platform","construction","proposed"]);
+
+function tipoVia(nombre){
+    const m = normalizar(nombre).match(TIPOS_VIA);
+    if (!m) return "";
+    const t = m[1];
+    if (t === "kr" || t === "cra") return "carrera";
+    if (t === "cl") return "calle";
+    return t === "vía" ? "via" : t;
+}
+
+async function nominatim(lat, lon){
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=es&lat=${lat}&lon=${lon}`;
+    const r = await fetchConTiempo(url, { headers: { "Accept": "application/json" } });
+    if (!r.ok) throw new Error("Nominatim " + r.status);
+    const j = await r.json();
+    return j.address || {};
+}
+
+/* Distancia en metros de un punto a una polilínea (aprox. plana, suficiente para < 100 m) */
+function distanciaAVia(lat, lon, geometria){
+    const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540;
+    let min = Infinity;
+    for (let i = 0; i < geometria.length - 1; i++){
+        const ax = (geometria[i].lon - lon) * kx,   ay = (geometria[i].lat - lat) * ky;
+        const bx = (geometria[i+1].lon - lon) * kx, by = (geometria[i+1].lat - lat) * ky;
+        const dx = bx - ax, dy = by - ay;
+        const len2 = dx*dx + dy*dy;
+        const t = len2 ? Math.max(0, Math.min(1, -(ax*dx + ay*dy) / len2)) : 0;
+        const px = ax + t*dx, py = ay + t*dy;
+        min = Math.min(min, Math.hypot(px, py));
+    }
+    if (geometria.length === 1){
+        min = Math.hypot((geometria[0].lon - lon) * kx, (geometria[0].lat - lat) * ky);
+    }
+    return min;
+}
+
+async function viasCercanas(lat, lon){
+    const q = `[out:json][timeout:8];way(around:80,${lat},${lon})[highway][name];out tags geom;`;
+    const r = await fetchConTiempo("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "data=" + encodeURIComponent(q)
+    }, 12000);
+    if (!r.ok) throw new Error("Overpass " + r.status);
+    const j = await r.json();
+
+    const porNombre = new Map();
+    for (const el of j.elements || []){
+        if (!el.geometry || VIAS_IGNORADAS.has(el.tags.highway)) continue;
+        const nombre = el.tags.name.trim();
+        const d = distanciaAVia(lat, lon, el.geometry);
+        if (!porNombre.has(nombre) || porNombre.get(nombre) > d) porNombre.set(nombre, d);
+    }
+    return [...porNombre.entries()]
+        .map(([nombre, distancia]) => ({ nombre, distancia }))
+        .sort((a, b) => a.distancia - b.distancia);
+}
+
+function armarDireccion(vias, address){
+    const via1 = vias[0]?.nombre || address.road || "";
+    if (!via1) return "";
+    const t1 = tipoVia(via1);
+    const cruce = vias.find(v => v.nombre !== via1 && tipoVia(v.nombre) && tipoVia(v.nombre) !== t1 && v.distancia < 80);
+    if (cruce) return `${via1} con ${cruce.nombre}`;
+    return address.house_number ? `${via1} # ${address.house_number}` : via1;
+}
+
+async function buscarDireccion(lat, lon){
+    const estado = $("dirEstado");
+    setEstado(estado, "Buscando barrio y dirección...");
+
+    const [rNom, rVias] = await Promise.allSettled([nominatim(lat, lon), viasCercanas(lat, lon)]);
+    const address = rNom.status === "fulfilled" ? rNom.value : {};
+    const vias = rVias.status === "fulfilled" ? rVias.value : [];
+
+    const barrio = address.neighbourhood || address.suburb || address.quarter ||
+                   address.residential || address.city_district || address.hamlet || "";
+    const direccion = armarDireccion(vias, address);
+    const municipioGeo = address.city || address.town || address.village || address.municipality || address.county || "";
+
+    if (!barrio && !direccion){
+        setEstado(estado, "No se encontró la dirección para este punto. Escríbala manualmente.", "warn");
+        return;
+    }
+
+    const yaEscrito = ($("barrio").value.trim() && barrio && $("barrio").value.trim() !== barrio) ||
+                      ($("direccion").value.trim() && direccion && $("direccion").value.trim() !== direccion);
+    if (yaEscrito && !confirm(`El GPS sugiere:\n\nBarrio: ${barrio || "(no encontrado)"}\nDirección: ${direccion || "(no encontrada)"}\n\n¿Reemplazar lo que ya escribió?`)){
+        setEstado(estado, "Se conservó el barrio y la dirección escritos manualmente.");
+        return;
+    }
+
+    if (barrio){ $("barrio").value = barrio; $("barrio").classList.add("autollenado"); marcarError($("barrio"), false); }
+    if (direccion){ $("direccion").value = direccion; $("direccion").classList.add("autollenado"); marcarError($("direccion"), false); }
+
+    if (!$("municipio").value && municipioGeo){
+        const m = MUNICIPIOS.find(x => normalizar(municipioGeo).includes(normalizar(x)));
+        if (m){ $("municipio").value = m; marcarError($("municipio"), false); }
+    }
+
+    direccionGPS = [barrio, direccion].filter(Boolean).join(" · ");
+    const faltan = [!barrio && "barrio", !direccion && "dirección"].filter(Boolean);
+    setEstado(estado,
+        faltan.length
+            ? `Se sugirió parte de la dirección; complete ${faltan.join(" y ")} manualmente.`
+            : "✓ Barrio y dirección sugeridos por GPS. Verifique y corrija si es necesario.",
+        faltan.length ? "warn" : "ok");
+    guardarBorrador();
+}
+
+/* ============================
+   VALIDACIÓN
+============================ */
+function marcarError(campo, hayError){
+    const field = campo.closest(".field");
+    if (field) field.classList.toggle("con-error", hayError);
+    if (campo.matches("input:not([type=radio]), select, textarea")) campo.classList.toggle("invalido", hayError);
+}
+
+function validar(){
+    let primero = null;
+    form.querySelectorAll("[required]").forEach(campo => {
+        const vacio = campo.type === "radio"
+            ? !form.querySelector(`input[name="${campo.name}"]:checked`)
+            : !campo.value.trim();
+        marcarError(campo, vacio);
+        if (vacio && !primero) primero = campo;
+    });
+
+    const gpsOk = !!coordenadasValidas();
+    $("campoGPS").classList.toggle("con-error", !gpsOk);
+    if (!gpsOk && !primero) primero = $("btnGPS");
+
+    if (primero){
+        primero.closest(".field, .gps-box")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (primero.type !== "radio") setTimeout(() => primero.focus({ preventScroll: true }), 300);
+    }
+    return !primero;
+}
+
+/* ============================
+   DATOS Y ENVÍO
+============================ */
+function radio(nombre){ return form.querySelector(`input[name="${nombre}"]:checked`)?.value || ""; }
+
+function generarId(){
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+}
+
+function recolectarDatos(){
+    const c = coordenadasValidas();
+    return {
+        id_registro:    idRegistro,
+        fecha_registro: new Date().toISOString(),
+        municipio:      $("municipio").value,
+        barrio:         $("barrio").value.trim(),
+        direccion:      $("direccion").value.trim(),
+        direccion_gps:  direccionGPS,
+        latitud:        c ? c.lat : null,
+        longitud:       c ? c.lon : null,
+        precision_m:    precisionGPS,
+        coordenadas:    $("coordenadas").value,
+        tipo_expendio:  radio("tipoExpendio"),
+        actor:          $("actor").value.trim(),
+        sustancia:      $("sustancia").value.trim(),
+        venezolanos:    radio("venezolanos"),
+        marquillas:     $("marquillas").value.trim(),
+        funcionarios:   $("funcionarios").value.trim()
+    };
+}
+
+function construirFormData(datos){
+    const fd = new FormData();
+    fd.append("datos", JSON.stringify(datos));
+    Object.entries(fotos).forEach(([tipo, lista]) => {
+        lista.forEach(f => fd.append(`fotos_${tipo}`, f.blob, f.nombre));
+    });
+    return fd;
+}
+
+function enviar(fd, clave){
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", CONFIG.API_URL);
+        xhr.setRequestHeader("X-Clave", clave);
+        xhr.timeout = 180000;
+        xhr.upload.onprogress = e => {
+            if (!e.lengthComputable) return;
+            const pct = Math.round(e.loaded / e.total * 100);
+            $("progreso").firstElementChild.style.width = pct + "%";
+            mostrarEstado(`Enviando información... ${pct}%`);
+        };
+        xhr.onload = () => {
+            let cuerpo = {};
+            try{ cuerpo = JSON.parse(xhr.responseText); }catch(_){}
+            if (xhr.status >= 200 && xhr.status < 300) resolve(cuerpo);
+            else reject(Object.assign(new Error(cuerpo.error || "HTTP " + xhr.status), { status: xhr.status }));
+        };
+        xhr.onerror = () => reject(Object.assign(new Error("red"), { status: 0 }));
+        xhr.ontimeout = () => reject(Object.assign(new Error("tiempo"), { status: 0 }));
+        xhr.send(fd);
+    });
+}
+
+function mostrarEstado(texto, clase = ""){
+    const s = $("formStatus");
+    s.textContent = texto;
+    s.className = "status " + clase;
+}
+
+function setCargando(activo){
+    const btn = $("btnGuardar");
+    btn.disabled = activo;
+    btn.classList.toggle("cargando", activo);
+    btn.querySelector(".texto").textContent = activo ? "GUARDANDO..." : "GUARDAR CARACTERIZACIÓN";
+    $("progreso").classList.toggle("visible", activo);
+    if (!activo) $("progreso").firstElementChild.style.width = "0";
+}
+
+form.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    if (location.protocol === "file:"){
+        mostrarEstado("Abra el formulario desde la dirección del servidor (https://...), no como archivo.", "err");
+        return;
+    }
+    if (!validar()){
+        mostrarEstado("Revise los campos marcados en rojo.", "err");
+        return;
+    }
+    if (fotos.punto.length === 0 &&
+        !confirm("No ha agregado fotografías del punto de expendio. ¿Desea guardar de todas formas?")){
+        return;
+    }
+
+    const clave = $("claveAcceso").value.trim();
+    if (!idRegistro) idRegistro = generarId();
+    const datos = recolectarDatos();
+
+    setCargando(true);
+    mostrarEstado("Enviando información...");
+
+    try{
+        await enviar(construirFormData(datos), clave);
+        try{ localStorage.setItem(CONFIG.CLAVE_ACCESO, clave); }catch(_){}
+        mostrarEstado(`✓ Caracterización guardada (${new Date().toLocaleTimeString("es-CO")}).`, "ok");
+        reiniciarFormulario();
+    }catch(err){
+        console.error(err);
+        if (err.status === 401){
+            marcarError($("claveAcceso"), true);
+            try{ localStorage.removeItem(CONFIG.CLAVE_ACCESO); }catch(_){}
+            mostrarEstado("✗ El código de acceso no es válido.", "err");
+            $("claveAcceso").focus();
+        } else if (err.status === 400 || err.status === 413){
+            mostrarEstado("✗ " + err.message, "err");
+        } else {
+            mostrarEstado(
+                navigator.onLine
+                    ? "✗ Error al guardar. Intente de nuevo; la información no se ha perdido."
+                    : "✗ Sin conexión. La información sigue en el formulario; intente cuando tenga señal.",
+                "err");
+        }
+    }finally{
+        setCargando(false);
+    }
+});
+
+function reiniciarFormulario(){
+    const clave = $("claveAcceso").value;
+    form.reset();
+    $("claveAcceso").value = clave;
+    limpiarFotos();
+    precisionGPS = null;
+    direccionGPS = "";
+    idRegistro = null;
+    actualizarCoordenadas();
+    setEstado($("gpsEstado"), "Ubicación no capturada");
+    setEstado($("dirEstado"), "Puede escribir el barrio y la dirección o llenarlos con el botón GPS.");
+    form.querySelectorAll(".con-error").forEach(el => el.classList.remove("con-error"));
+    form.querySelectorAll(".invalido, .autollenado").forEach(el => el.classList.remove("invalido", "autollenado"));
+    borrarBorrador();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ============================
+   BORRADOR AUTOMÁTICO (solo texto)
+============================ */
+const CAMPOS_BORRADOR = ["municipio","barrio","direccion","latitud","longitud","actor","sustancia","marquillas","funcionarios"];
+let temporizador = null;
+
+function guardarBorrador(){
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => {
+        try{
+            const b = { precision: precisionGPS, direccionGPS, tipoExpendio: radio("tipoExpendio"), venezolanos: radio("venezolanos") };
+            CAMPOS_BORRADOR.forEach(id => b[id] = $(id).value);
+            localStorage.setItem(CONFIG.CLAVE_BORRADOR, JSON.stringify(b));
+        }catch(_){}
+    }, 400);
+}
+
+function restaurarBorrador(){
+    try{
+        const b = JSON.parse(localStorage.getItem(CONFIG.CLAVE_BORRADOR) || "null");
+        if (!b) return;
+        if (!(CAMPOS_BORRADOR.some(id => b[id]) || b.tipoExpendio || b.venezolanos)) return;
+        CAMPOS_BORRADOR.forEach(id => { if (b[id] != null) $(id).value = b[id]; });
+        ["tipoExpendio","venezolanos"].forEach(n => {
+            const r = form.querySelector(`input[name="${n}"][value="${b[n]}"]`);
+            if (r) r.checked = true;
+        });
+        precisionGPS = b.precision ?? null;
+        direccionGPS = b.direccionGPS || "";
+        actualizarCoordenadas();
+        if (coordenadasValidas()) setEstado($("gpsEstado"), "Ubicación recuperada del borrador", "ok");
+        $("avisoBorrador").classList.add("visible");
+    }catch(_){}
+}
+
+function borrarBorrador(){
+    try{ localStorage.removeItem(CONFIG.CLAVE_BORRADOR); }catch(_){}
+    $("avisoBorrador").classList.remove("visible");
+}
+
+/* ============================
+   INICIO
+============================ */
+crearSeccionesFotos();
+restaurarBorrador();
+try{ $("claveAcceso").value = localStorage.getItem(CONFIG.CLAVE_ACCESO) || ""; }catch(_){}
+
+$("btnGPS").addEventListener("click", obtenerGPS);
+$("btnDireccion").addEventListener("click", () => {
+    const c = coordenadasValidas();
+    if (c) buscarDireccion(c.lat, c.lon);
+});
+
+["latitud","longitud"].forEach(id => $(id).addEventListener("input", () => {
+    precisionGPS = null;
+    actualizarCoordenadas();
+    if (coordenadasValidas()) $("campoGPS").classList.remove("con-error");
+}));
+["barrio","direccion"].forEach(id => $(id).addEventListener("input", () => $(id).classList.remove("autollenado")));
+
+form.addEventListener("input", e => {
+    if (e.target.matches("[required]") && e.target.type !== "radio" && e.target.value.trim()) marcarError(e.target, false);
+    if (e.target.id !== "claveAcceso") guardarBorrador();
+});
+form.addEventListener("change", e => {
+    if (e.target.type === "radio") marcarError(e.target, false);
+    guardarBorrador();
+});
+
+$("btnDescartar").addEventListener("click", () => { reiniciarFormulario(); mostrarEstado(""); });
+$("btnLimpiar").addEventListener("click", () => {
+    if (confirm("¿Desea borrar toda la información del formulario?")){ reiniciarFormulario(); mostrarEstado(""); }
+});
+
+window.addEventListener("beforeunload", e => {
+    if (Object.values(fotos).some(l => l.length)){ e.preventDefault(); e.returnValue = ""; }
+});
+</script>
+
+</body>
+</html>

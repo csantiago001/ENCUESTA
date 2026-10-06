@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#003b73">
+<meta name="robots" content="noindex, nofollow">
+<title>Registros de Caracterización - MEBUC</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root{
+    --azul:#003b73; --azul2:#005ca9; --azul3:#eaf3fb;
+    --gris:#667085; --borde:#d9e0e7; --verde:#16803c; --rojo:#c62828;
+    --sombra:0 8px 30px rgba(0,0,0,.08);
+}
+*{ box-sizing:border-box; }
+body{
+    margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:#f3f6f9; color:#17202a; line-height:1.4;
+}
+.header{
+    background:linear-gradient(135deg,var(--azul),var(--azul2)); color:#fff;
+    padding:18px 16px; padding-top:max(18px, env(safe-area-inset-top)); box-shadow:var(--sombra);
+}
+.header-container{ max-width:1300px; margin:auto; display:flex; align-items:center; gap:14px; }
+.logo{
+    flex:0 0 50px; height:50px; border-radius:50%; background:#fff; color:var(--azul);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;
+}
+.header h1{ margin:0; font-size:19px; }
+.header p{ margin:3px 0 0; opacity:.9; font-size:13px; }
+.header .salir{ margin-left:auto; }
+
+.container{ max-width:1300px; margin:20px auto; padding:0 16px; }
+.card{ background:#fff; border-radius:14px; padding:20px; margin-bottom:18px; box-shadow:var(--sombra); }
+
+input, select{
+    width:100%; padding:10px 12px; border:1px solid var(--borde); border-radius:9px;
+    font-size:16px; font-family:inherit; background:#fff; color:inherit; outline:none;
+}
+input:focus, select:focus{ border-color:var(--azul2); box-shadow:0 0 0 3px rgba(0,92,169,.12); }
+label{ display:block; font-weight:700; font-size:13px; margin-bottom:5px; }
+
+button, .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border:none; border-radius:9px; padding:10px 16px; font-size:14px; font-weight:700;
+    font-family:inherit; cursor:pointer; text-decoration:none; min-height:42px; white-space:nowrap;
+}
+button:disabled{ opacity:.6; cursor:not-allowed; }
+.btn-primary{ background:var(--azul); color:#fff; }
+.btn-primary:hover:not(:disabled){ background:#002d59; }
+.btn-excel{ background:var(--verde); color:#fff; }
+.btn-excel:hover:not(:disabled){ background:#11652f; }
+.btn-secondary{ background:#eef2f6; color:#263238; }
+.btn-secondary:hover{ background:#e2e8ef; }
+.btn-claro{ background:rgba(255,255,255,.15); color:#fff; }
+.btn-peligro{ background:#fdecea; color:var(--rojo); }
+
+/* ---------- Ingreso ---------- */
+.login{ max-width:420px; margin:60px auto; }
+.login h2{ margin:0 0 6px; color:var(--azul); font-size:18px; }
+.login p{ margin:0 0 16px; color:var(--gris); font-size:14px; }
+.login form{ display:flex; flex-direction:column; gap:12px; }
+.error{ color:var(--rojo); font-size:14px; font-weight:700; min-height:20px; }
+
+/* ---------- Resumen ---------- */
+.resumen{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+.dato{ background:#fff; border-radius:12px; padding:14px 16px; box-shadow:var(--sombra); }
+.dato .num{ font-size:26px; font-weight:800; color:var(--azul); font-variant-numeric:tabular-nums; }
+.dato .txt{ font-size:13px; color:var(--gris); }
+
+/* ---------- Filtros ---------- */
+.filtros{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; }
+.filtros .botones{ display:flex; gap:8px; }
+.nota{ font-size:12px; color:var(--gris); margin-top:10px; }
+
+/* ---------- Tabla ---------- */
+.tabla-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+table{ width:100%; border-collapse:collapse; font-size:14px; }
+th{
+    text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--gris); padding:10px 10px; border-bottom:2px solid var(--borde); white-space:nowrap;
+}
+td{ padding:11px 10px; border-bottom:1px solid #eef1f4; vertical-align:top; }
+tr.fila{ cursor:pointer; }
+tr.fila:hover td{ background:#f7fafd; }
+.chip{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:12px; font-weight:700;
+    background:var(--azul3); color:var(--azul);
+}
+.chip.fijo{ background:#fff3e0; color:#9a4f00; }
+.num-fotos{ font-variant-numeric:tabular-nums; color:var(--gris); white-space:nowrap; }
+.vacio{ text-align:center; color:var(--gris); padding:40px 10px; }
+
+/* ---------- Detalle ---------- */
+.fondo{ position:fixed; inset:0; background:rgba(16,24,40,.5); z-index:50; display:flex; justify-content:flex-end; }
+.fondo[hidden]{ display:none; }
+.detalle{
+    background:#fff; width:min(720px,100%); height:100%; overflow-y:auto;
+    padding:20px; padding-bottom:max(20px, env(safe-area-inset-bottom)); box-shadow:var(--sombra);
+}
+.detalle-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+.detalle h2{ margin:0; font-size:18px; color:var(--azul); }
+.detalle .sub{ color:var(--gris); font-size:13px; margin-top:3px; }
+.campos{ display:grid; grid-template-columns:1fr 1fr; gap:12px 18px; margin:16px 0; }
+.campo{ font-size:14px; }
+.campo.ancho{ grid-column:1 / -1; }
+.campo .k{ font-size:12px; font-weight:700; color:var(--gris); text-transform:uppercase; letter-spacing:.03em; }
+.campo .v{ white-space:pre-wrap; word-break:break-word; margin-top:2px; }
+.grupo-fotos h3{ font-size:15px; color:var(--azul); margin:18px 0 10px; border-bottom:2px solid var(--azul3); padding-bottom:6px; }
+.galeria{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.foto{ border:1px solid var(--borde); border-radius:10px; overflow:hidden; }
+.foto a.ver img{ width:100%; height:150px; object-fit:cover; display:block; background:#eef1f4; }
+.foto a.bajar{
+    display:block; text-align:center; padding:8px; font-size:13px; font-weight:700;
+    color:var(--azul2); text-decoration:none; border-top:1px solid var(--borde);
+}
+.sin-fotos{ font-size:13px; color:var(--gris); }
+.acciones-detalle{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; padding-top:16px; border-top:1px solid var(--borde); }
+
+.footer{ text-align:center; color:#7a8691; font-size:12px; padding:20px; }
+
+@media (max-width:900px){
+    .filtros{ grid-template-columns:1fr 1fr; }
+    .filtros .buscar{ grid-column:1 / -1; }
+    .filtros .botones{ grid-column:1 / -1; }
+    .filtros .botones button{ flex:1; }
+    .resumen{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:600px){
+    .campos{ grid-template-columns:1fr; }
+    .header .salir span{ display:none; }
+    .col-opc{ display:none; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-container">
+        <div class="logo" aria-hidden="true">MEBUC</div>
+        <div>
+            <h1>Registros de caracterización</h1>
+            <p>Policía Nacional de Colombia · MEBUC</p>
+        </div>
+        <button type="button" class="btn-claro salir" id="btnSalir" hidden>⎋ <span>Salir</span></button>
+    </div>
+</header>
+
+<!-- Ingreso -->
+<main class="container" id="vistaLogin">
+    <section class="card login">
+        <h2>Acceso al panel</h2>
+        <p>Ingrese la clave de administrador para ver los registros.</p>
+        <form id="formLogin">
+            <div>
+                <label for="claveAdmin">Clave de administrador</label>
+                <input id="claveAdmin" type="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-primary" id="btnEntrar">Entrar</button>
+            <div class="error" id="errorLogin" aria-live="polite"></div>
+        </form>
+    </section>
+</main>
+
+<!-- Panel -->
+<main class="container" id="vistaPanel" hidden>
+
+    <div class="resumen">
+        <div class="dato"><div class="num" id="numRegistros">0</div><div class="txt">Registros</div></div>
+        <div class="dato"><div class="num" id="numFotos">0</div><div class="txt">Fotografías</div></div>
+        <div class="dato"><div class="num" id="numFijos">0</div><div class="txt">Expendios fijos</div></div>
+        <div class="dato"><div class="num" id="numMoviles">0</div><div class="txt">Expendios móviles</div></div>
+    </div>
+
+    <section class="card">
+        <div class="filtros">
+            <div class="buscar">
+                <label for="fTexto">Buscar</label>
+                <input id="fTexto" type="search" placeholder="Barrio, dirección, actor, sustancia, ZAP...">
+            </div>
+            <div>
+                <label for="fMunicipio">Municipio</label>
+                <select id="fMunicipio">
+                    <option value="">Todos</option>
+                    <option>Bucaramanga</option><option>Floridablanca</option><option>Girón</option>
+                    <option>Piedecuesta</option><option>Lebrija</option><option>Los Santos</option>
+                </select>
+            </div>
+            <div>
+                <label for="fDesde">Desde</label>
+                <input id="fDesde" type="date">
+            </div>
+            <div>
+                <label for="fHasta">Hasta</label>
+                <input id="fHasta" type="date">
+            </div>
+            <div class="botones">
+                <button type="button" class="btn-secondary" id="btnActualizar" title="Actualizar">⟳ Actualizar</button>
+                <button type="button" class="btn-excel" id="btnExcel">⬇ Descargar Excel</button>
+            </div>
+        </div>
+        <div class="nota" id="notaEnlaces"></div>
+    </section>
+
+    <section class="card">
+        <div class="tabla-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Municipio</th>
+                        <th>Barrio</th>
+                        <th>Dirección</th>
+                        <th>Tipo</th>
+                        <th class="col-opc">Estructura / actor</th>
+                        <th>Fotos</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<!-- Detalle de un registro -->
+<div class="fondo" id="fondoDetalle" hidden>
+    <aside class="detalle" role="dialog" aria-modal="true" aria-labelledby="detTitulo" id="detalle"></aside>
+</div>
+
+<footer class="footer">Policía Nacional de Colombia · MEBUC</footer>
+
+<script>
+"use strict";
+
+const API = "/api";
+const CLAVE_SESION = "mebuc_admin";
+const TIPOS = [
+    { id: "actor",     nombre: "Actor" },
+    { id: "marquilla", nombre: "Marquilla" },
+    { id: "punto",     nombre: "Punto de expendio" }
+];
+
+const $ = id => document.getElementById(id);
+let clave = "";
+let datos = { registros: [], enlaces_expiran: null };
+let filtrados = [];
+
+/* ============================
+   UTILIDADES
+============================ */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const normalizar = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const fechaCO = iso => iso ? new Date(iso).toLocaleString("es-CO", { timeZone: "America/Bogota", dateStyle: "short", timeStyle: "short" }) : "";
+const diaCO = iso => iso ? new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Bogota" }) : "";
+const totalFotos = r => TIPOS.reduce((n, t) => n + (r.fotos?.[t.id]?.length || 0), 0);
+
+async function api(ruta, opciones = {}){
+    const r = await fetch(API + ruta, {
+        ...opciones,
+        headers: { ...(opciones.headers || {}), "Authorization": "Bearer " + clave }
+    });
+    let cuerpo = {};
+    try{ cuerpo = await r.json(); }catch(_){}
+    if (!r.ok) throw Object.assign(new Error(cuerpo.error || "Error " + r.status), { status: r.status });
+    return cuerpo;
+}
+
+/* ============================
+   INGRESO
+============================ */
+$("formLogin").addEventListener("submit", async e => {
+    e.preventDefault();
+    clave = $("claveAdmin").value.trim();
+    $("btnEntrar").disabled = true;
+    $("errorLogin").textContent = "";
+    try{
+        await api("/verificar");
+        try{ sessionStorage.setItem(CLAVE_SESION, clave); }catch(_){}
+        mostrarPanel();
+    }catch(err){
+        $("errorLogin").textContent = err.status === 401 ? "Clave incorrecta." : "No fue posible conectar con el servidor.";
+    }finally{
+        $("btnEntrar").disabled = false;
+    }
+});
+
+function mostrarPanel(){
+    $("vistaLogin").hidden = true;
+    $("vistaPanel").hidden = false;
+    $("btnSalir").hidden = false;
+    cargar();
+}
+
+$("btnSalir").addEventListener("click", () => {
+    try{ sessionStorage.removeItem(CLAVE_SESION); }catch(_){}
+    location.reload();
+});
+
+/* ============================
+   CARGA Y FILTROS
+============================ */
+async function cargar(){
+    $("btnActualizar").disabled = true;
+    $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">Cargando registros...</td></tr>`;
+    try{
+        datos = await api("/registros");
+        $("notaEnlaces").textContent =
+            `Los enlaces de las fotografías (en el panel y en el Excel) funcionan hasta el ${fechaCO(datos.enlaces_expiran)}. ` +
+            `Después, descargue un Excel nuevo.`;
+        filtrar();
+    }catch(err){
+        if (err.status === 401){ $("btnSalir").click(); return; }
+        $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">No fue posible cargar los registros. ${esc(err.message)}</td></tr>`;
+    }finally{
+        $("btnActualizar").disabled = false;
+    }
+}
+
+function filtrar(){
+    const texto = normalizar($("fTexto").value.trim());
+    const muni = $("fMunicipio").value;
+    const desde = $("fDesde").value;
+    const hasta = $("fHasta").value;
+
+    filtrados = datos.registros.filter(r => {
+        if (muni && r.municipio !== muni) return false;
+        const dia = diaCO(r.fecha_registro);
+        if (desde && dia < desde) return false;
+        if (hasta && dia > hasta) return false;
+        if (texto){
+            const todo = normalizar([r.barrio, r.direccion, r.actor, r.sustancia, r.marquillas, r.funcionarios, r.municipio].join(" "));
+            if (!todo.includes(texto)) return false;
+        }
+        return true;
+    });
+    pintar();
+}
+
+["fTexto","fMunicipio","fDesde","fHasta"].forEach(id => $(id).addEventListener("input", filtrar));
+$("btnActualizar").addEventListener("click", cargar);
+
+function pintar(){
+    $("numRegistros").textContent = filtrados.length.toLocaleString("es-CO");
+    $("numFotos").textContent = filtrados.reduce((n, r) => n + totalFotos(r), 0).toLocaleString("es-CO");
+    $("numFijos").textContent = filtrados.filter(r => r.tipo_expendio === "Fijo").length.toLocaleString("es-CO");
+    $("numMoviles").textContent = filtrados.filter(r => r.tipo_expendio === "Móvil").length.toLocaleString("es-CO");
+    $("btnExcel").disabled = filtrados.length === 0;
+
+    if (!filtrados.length){
+        $("tbody").innerHTML = `<tr><td colspan="7" class="vacio">${datos.registros.length ? "Ningún registro coincide con los filtros." : "Aún no hay registros."}</td></tr>`;
+        return;
+    }
+    $("tbody").innerHTML = filtrados.map((r, i) => `
+        <tr class="fila" data-i="${i}" tabindex="0">
+            <td style="white-space:nowrap">${esc(fechaCO(r.fecha_registro))}</td>
+            <td>${esc(r.municipio)}</td>
+            <td>${esc(r.barrio)}</td>
+            <td>${esc(r.direccion)}</td>
+            <td><span class="chip ${r.tipo_expendio === "Fijo" ? "fijo" : ""}">${esc(r.tipo_expendio)}</span></td>
+            <td class="col-opc">${esc((r.actor || "").slice(0, 60))}${(r.actor || "").length > 60 ? "…" : ""}</td>
+            <td class="num-fotos">📷 ${totalFotos(r)}</td>
+        </tr>`).join("");
+}
+
+$("tbody").addEventListener("click", e => {
+    const fila = e.target.closest("tr.fila");
+    if (fila) abrirDetalle(filtrados[+fila.dataset.i]);
+});
+$("tbody").addEventListener("keydown", e => {
+    const fila = e.target.closest("tr.fila");
+    if (fila && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); abrirDetalle(filtrados[+fila.dataset.i]); }
+});
+
+/* ============================
+   DETALLE
+============================ */
+function abrirDetalle(r){
+    const campo = (k, v, ancho) => `<div class="campo${ancho ? " ancho" : ""}"><div class="k">${esc(k)}</div><div class="v">${esc(v) || "—"}</div></div>`;
+    const mapa = `https://www.google.com/maps?q=${r.latitud},${r.longitud}`;
+
+    const fotosHtml = TIPOS.map(t => {
+        const lista = r.fotos?.[t.id] || [];
+        const cuerpo = lista.length
+            ? `<div class="galeria">${lista.map(f => `
+                <div class="foto">
+                    <a class="ver" href="${esc(f.ver)}" target="_blank" rel="noopener"><img src="${esc(f.ver)}" alt="${esc(t.nombre)} ${f.orden}" loading="lazy"></a>
+                    <a class="bajar" href="${esc(f.descargar)}">⬇ Descargar</a>
+                </div>`).join("")}</div>`
+            : `<div class="sin-fotos">Sin fotografías.</div>`;
+        return `<div class="grupo-fotos"><h3>Fotografía de ${esc(t.nombre.toLowerCase())} (${lista.length})</h3>${cuerpo}</div>`;
+    }).join("");
+
+    $("detalle").innerHTML = `
+        <div class="detalle-top">
+            <div>
+                <h2 id="detTitulo">${esc(r.barrio)} · ${esc(r.municipio)}</h2>
+                <div class="sub">${esc(fechaCO(r.fecha_registro))} · ID ${esc(r.id)}</div>
+            </div>
+            <button type="button" class="btn-secondary" id="btnCerrarDet" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="campos">
+            ${campo("Municipio", r.municipio)}
+            ${campo("Barrio", r.barrio)}
+            ${campo("Dirección", r.direccion, true)}
+            ${r.direccion_gps ? campo("Dirección sugerida por GPS", r.direccion_gps, true) : ""}
+            ${campo("Coordenadas", r.coordenadas)}
+            <div class="campo"><div class="k">Latitud, longitud</div><div class="v">${esc(r.latitud)}, ${esc(r.longitud)}${r.precision_m != null ? ` (±${esc(r.precision_m)} m)` : ""}<br><a href="${esc(mapa)}" target="_blank" rel="noopener">Ver en el mapa ↗</a></div></div>
+            ${campo("Tipo de expendio", r.tipo_expendio)}
+            ${campo("Vinculación de venezolanos", r.venezolanos)}
+            ${campo("Estructura asociada y actor reconocido", r.actor, true)}
+            ${campo("Tipo de sustancia y valor de la dosis", r.sustancia, true)}
+            ${campo("Marquillas", r.marquillas, true)}
+            ${campo("ZAP y funcionarios", r.funcionarios, true)}
+        </div>
+        ${fotosHtml}
+        <div class="acciones-detalle">
+            <button type="button" class="btn-peligro" id="btnEliminar">Eliminar registro</button>
+        </div>`;
+
+    $("fondoDetalle").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("btnCerrarDet").focus();
+    $("btnCerrarDet").addEventListener("click", cerrarDetalle);
+    $("btnEliminar").addEventListener("click", () => eliminar(r));
+}
+
+function cerrarDetalle(){
+    $("fondoDetalle").hidden = true;
+    document.body.style.overflow = "";
+}
+$("fondoDetalle").addEventListener("click", e => { if (e.target === $("fondoDetalle")) cerrarDetalle(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("fondoDetalle").hidden) cerrarDetalle(); });
+
+async function eliminar(r){
+    if (!confirm(`¿Eliminar definitivamente el registro de ${r.barrio} (${r.municipio}) y sus ${totalFotos(r)} fotografías?\n\nEsta acción no se puede deshacer.`)) return;
+    try{
+        await api("/registros/" + encodeURIComponent(r.id), { method: "DELETE" });
+        cerrarDetalle();
+        datos.registros = datos.registros.filter(x => x.id !== r.id);
+        filtrar();
+    }catch(err){
+        alert("No fue posible eliminar: " + err.message);
+    }
+}
+
+/* ============================
+   EXCEL
+============================ */
+// <excel>
+function construirLibro(XLSX, registros, enlacesExpiran){
+    const COLUMNAS = [
+        ["ID registro", "id", 38],
+        ["Fecha registro", r => fechaCO(r.fecha_registro), 17],
+        ["Municipio", "municipio", 14],
+        ["Barrio", "barrio", 22],
+        ["Dirección", "direccion", 32],
+        ["Dirección sugerida GPS", "direccion_gps", 32],
+        ["Latitud", "latitud", 13],
+        ["Longitud", "longitud", 13],
+        ["Precisión GPS (m)", "precision_m", 10],
+        ["Coordenadas", "coordenadas", 26],
+        ["Tipo de expendio", "tipo_expendio", 12],
+        ["Estructura asociada y actor reconocido", "actor", 36],
+        ["Tipo de sustancia y valor de la dosis", "sustancia", 36],
+        ["Vinculación de venezolanos", "venezolanos", 12],
+        ["Marquillas", "marquillas", 32],
+        ["ZAP y funcionarios", "funcionarios", 32]
+    ];
+
+    // Una columna por foto (Excel solo permite un enlace por celda)
+    const maxFotos = {};
+    TIPOS.forEach(t => maxFotos[t.id] = Math.max(1, ...registros.map(r => r.fotos?.[t.id]?.length || 0)));
+    const colsFotos = [];
+    TIPOS.forEach(t => {
+        for (let n = 1; n <= maxFotos[t.id]; n++) colsFotos.push({ tipo: t.id, n, titulo: `Foto ${t.nombre.toLowerCase()} ${n}` });
+    });
+
+    const encabezados = [...COLUMNAS.map(c => c[0]), "Ver en mapa", ...colsFotos.map(c => c.titulo)];
+    const filas = registros.map(r => [
+        ...COLUMNAS.map(([, campo]) => typeof campo === "function" ? campo(r) : (r[campo] ?? "")),
+        "Abrir mapa",
+        ...colsFotos.map(c => r.fotos?.[c.tipo]?.[c.n - 1] ? "Descargar foto" : "")
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+    const colMapa = COLUMNAS.length;
+
+    registros.forEach((r, i) => {
+        const fila = i + 1;
+        const celdaMapa = XLSX.utils.encode_cell({ r: fila, c: colMapa });
+        ws[celdaMapa].l = { Target: `https://www.google.com/maps?q=${r.latitud},${r.longitud}`, Tooltip: "Abrir en Google Maps" };
+        colsFotos.forEach((c, j) => {
+            const foto = r.fotos?.[c.tipo]?.[c.n - 1];
+            if (!foto) return;
+            const celda = XLSX.utils.encode_cell({ r: fila, c: colMapa + 1 + j });
+            ws[celda].l = { Target: foto.descargar, Tooltip: "Clic para descargar la fotografía" };
+        });
+    });
+
+    ws["!cols"] = [...COLUMNAS.map(c => ({ wch: c[2] })), { wch: 12 }, ...colsFotos.map(() => ({ wch: 16 }))];
+    ws["!autofilter"] = { ref: ws["!ref"] };
+
+    // Hoja 2: una fila por fotografía
+    const filasFotos = [["ID registro", "Fecha registro", "Municipio", "Barrio", "Dirección", "Tipo de foto", "N.º", "Tamaño (KB)", "Enlace de descarga"]];
+    const enlaces = [];
+    registros.forEach(r => TIPOS.forEach(t => (r.fotos?.[t.id] || []).forEach(f => {
+        filasFotos.push([r.id, fechaCO(r.fecha_registro), r.municipio, r.barrio, r.direccion, t.nombre, f.orden,
+                         f.tamano ? Math.round(f.tamano / 1024) : "", "Descargar foto"]);
+        enlaces.push(f.descargar);
+    })));
+    const wsFotos = XLSX.utils.aoa_to_sheet(filasFotos);
+    enlaces.forEach((url, i) => {
+        const celda = XLSX.utils.encode_cell({ r: i + 1, c: 8 });
+        wsFotos[celda].l = { Target: url, Tooltip: "Clic para descargar la fotografía" };
+    });
+    wsFotos["!cols"] = [{ wch: 38 }, { wch: 17 }, { wch: 14 }, { wch: 22 }, { wch: 32 }, { wch: 18 }, { wch: 5 }, { wch: 11 }, { wch: 16 }];
+    wsFotos["!autofilter"] = { ref: wsFotos["!ref"] };
+
+    // Hoja 3: información del reporte
+    const wsInfo = XLSX.utils.aoa_to_sheet([
+        ["Caracterización de Zonas de Expendios - MEBUC"],
+        [],
+        ["Generado", fechaCO(new Date().toISOString())],
+        ["Registros", registros.length],
+        ["Fotografías", enlaces.length],
+        ["Enlaces de fotos válidos hasta", fechaCO(enlacesExpiran)],
+        [],
+        ["Nota", "Los enlaces de descarga dejan de funcionar en la fecha indicada. Para obtener enlaces nuevos, descargue otro Excel desde el panel."],
+        ["Nota", "Documento con información reservada. No reenviar fuera de la unidad."]
+    ]);
+    wsInfo["!cols"] = [{ wch: 30 }, { wch: 90 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Caracterizaciones");
+    XLSX.utils.book_append_sheet(wb, wsFotos, "Fotografías");
+    XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
+    return wb;
+}
+// </excel>
+
+$("btnExcel").addEventListener("click", () => {
+    if (!window.XLSX){
+        alert("No se pudo cargar el generador de Excel. Revise la conexión a internet y recargue la página.");
+        return;
+    }
+    const wb = construirLibro(XLSX, filtrados, datos.enlaces_expiran);
+    const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+    XLSX.writeFile(wb, `Caracterizaciones_MEBUC_${hoy}.xlsx`, { compression: true });
+});
+
+/* ============================
+   INICIO
+============================ */
+try{
+    clave = sessionStorage.getItem(CLAVE_SESION) || "";
+}catch(_){}
+if (clave) mostrarPanel();
+else $("claveAdmin").focus();
+</script>
+</body>
+</html>
